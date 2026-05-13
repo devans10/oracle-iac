@@ -1,0 +1,28 @@
+---
+# site.yml — Full environment installation in dependency order.
+# Run individual component playbooks directly for targeted installs.
+# Tags: --tags install,configure,deploy,validate
+
+- name: Import infrastructure plays
+  ansible.builtin.import_playbook: ../infra/kvm-vms.yml
+
+- name: Import OS baseline plays
+  ansible.builtin.import_playbook: ../infra/oracle-linux-base.yml
+
+- name: Import NFS plays
+  ansible.builtin.import_playbook: ../infra/nfs.yml
+
+- name: Import OHS plays
+  ansible.builtin.import_playbook: ../infra/ohs.yml
+
+- name: Import CC&B plays
+  ansible.builtin.import_playbook: ../ccb/install.yml
+
+- name: Import MDM plays
+  ansible.builtin.import_playbook: ../mdm/install.yml
+
+- name: Import SOA Suite plays
+  ansible.builtin.import_playbook: ../soa/install.yml
+
+- name: Import security plays (Entra SAML, BeyondTrust)
+  ansible.builtin.import_playbook: ../security/configure.yml

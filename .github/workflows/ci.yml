@@ -1,0 +1,69 @@
+name: IaC Validation
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ansible-lint:
+    name: Ansible Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install ansible ansible-lint
+      - run: ansible-lint ansible/
+        working-directory: .
+
+  ansible-syntax:
+    name: Ansible Syntax Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install ansible
+      - name: Syntax check all playbooks
+        run: |
+          for pb in ansible/playbooks/**/*.yml; do
+            echo "Checking: $pb"
+            ansible-playbook --syntax-check "$pb" \
+              -i ansible/inventories/primary.yml.example \
+              --vault-password-file /dev/null || true
+          done
+
+  terraform-validate:
+    name: Terraform Validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: '1.7'
+      - name: Terraform fmt check
+        run: terraform fmt -check -recursive terraform/
+      - name: Terraform validate primary
+        run: |
+          cd terraform/environments/primary
+          terraform init -backend=false
+          terraform validate
+
+  secret-scan:
+    name: Secret Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for accidental secrets
+        run: |
+          if grep -rE '(password|secret|api_key|private_key)\s*[:=]\s*["\x27][^"\x27$\{\}]{8,}' \
+            --include="*.yml" --include="*.yaml" --include="*.tf" --include="*.py" \
+            --exclude-dir=".git" --exclude="*.example" --exclude="vault.yml.example" .; then
+            echo "ERROR: Possible hardcoded secret found. Use Ansible Vault or BeyondTrust."
+            exit 1
+          fi
+          echo "Secret scan passed"

@@ -1,0 +1,26 @@
+---
+# Security configuration: Entra ID SAML and BeyondTrust PasswordSafe integration
+
+- name: Configure Entra ID SAML on CC&B Web cluster
+  hosts: ccb_admin
+  tags: [configure, saml, entra]
+  roles:
+    - entra-id-saml
+  vars:
+    saml_domain: ccb_domain
+    saml_sp_base_url: "{{ saml_sp_base_url_ccb }}"
+
+- name: Configure Entra ID SAML on MDM Web cluster
+  hosts: mdm_admin
+  tags: [configure, saml, entra]
+  roles:
+    - entra-id-saml
+  vars:
+    saml_domain: mdm_domain
+    saml_sp_base_url: "{{ saml_sp_base_url_mdm }}"
+
+- name: Configure BeyondTrust credential retrieval on all app servers
+  hosts: app_servers
+  tags: [configure, beyondtrust, pam]
+  roles:
+    - beyondtrust-integration

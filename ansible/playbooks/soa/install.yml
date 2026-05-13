@@ -1,0 +1,51 @@
+---
+# SOA Suite 4-domain installation playbook
+# Each domain (soa_int, soa_if, soa_web, soa_sgg) is fully independent
+
+- name: Install Java on SOA nodes
+  hosts: soa_all
+  tags: [install, jdk]
+  roles:
+    - oracle-jdk
+
+- name: Install WebLogic + FMW Infrastructure on SOA nodes
+  hosts: soa_all
+  tags: [install, weblogic]
+  roles:
+    - oracle-weblogic
+
+- name: Install SOA Suite on SOA nodes
+  hosts: soa_all
+  tags: [install, soa]
+  roles:
+    - oracle-soa-suite
+
+- name: Configure soa_int domain
+  hosts: soa_int
+  tags: [configure, domain, soa_int]
+  roles:
+    - wls-domain-soa-int
+
+- name: Configure soa_if domain
+  hosts: soa_if
+  tags: [configure, domain, soa_if]
+  roles:
+    - wls-domain-soa-if
+
+- name: Configure soa_web domain
+  hosts: soa_web
+  tags: [configure, domain, soa_web]
+  roles:
+    - wls-domain-soa-web
+
+- name: Configure soa_sgg domain (Itron)
+  hosts: soa_sgg
+  tags: [configure, domain, soa_sgg]
+  roles:
+    - wls-domain-soa-sgg
+
+- name: Configure Node Manager on all SOA VMs
+  hosts: soa_all
+  tags: [configure, nodemanager]
+  roles:
+    - oracle-node-manager

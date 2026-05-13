@@ -1,0 +1,61 @@
+---
+# CC&B 25.10 installation playbook
+# Installs: JDK, WLS binaries, OUAF, CC&B, configures 3 clusters (Web/IWS/Batch)
+# Prerequisites: Oracle Linux baseline complete, DB accessible
+
+- name: Install Java on CC&B nodes
+  hosts: ccb_all
+  tags: [install, jdk]
+  roles:
+    - oracle-jdk
+
+- name: Install WebLogic binaries on CC&B nodes
+  hosts: ccb_all
+  tags: [install, weblogic]
+  roles:
+    - oracle-weblogic
+
+- name: Install OUAF on CC&B nodes
+  hosts: ccb_all
+  tags: [install, ouaf]
+  roles:
+    - oracle-ouaf
+
+- name: Install CC&B application
+  hosts: ccb_all
+  tags: [install, ccb]
+  roles:
+    - oracle-ccb
+
+- name: Configure CC&B WLS domain
+  hosts: ccb_admin
+  tags: [configure, domain]
+  roles:
+    - wls-domain-ccb
+
+- name: Configure CC&B clusters (Web/IWS/Batch)
+  hosts: ccb_all
+  tags: [configure, cluster]
+  roles:
+    - wls-cluster-config
+
+- name: Configure Node Manager on CC&B VMs
+  hosts: ccb_all
+  tags: [configure, nodemanager]
+  roles:
+    - oracle-node-manager
+
+- name: Configure Oracle RAC client on CC&B nodes
+  hosts: ccb_all
+  tags: [configure, jdbc]
+  roles:
+    - oracle-rac-client
+
+- name: Deploy CC&B IWS (WebServices.ear)
+  hosts: ccb_admin
+  tags: [deploy, iws]
+  roles:
+    - wls-iws-deploy
+  vars:
+    iws_domain: ccb_domain
+    iws_cluster: CCB-IWS

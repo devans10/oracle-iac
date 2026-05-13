@@ -1,0 +1,57 @@
+# Secrets — NEVER commit
+*.vault
+*.vault.yml
+vault.yml
+.vault_pass
+*.p12
+*.jks
+*.pem
+*.key
+*.pfx
+*.crt
+*.cer
+*.der
+secrets/
+.env
+.env.*
+.ps_credentials
+
+# Terraform state — contains secrets
+*.tfstate
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+*.tfvars
+!*.tfvars.example
+
+# Ansible generated/sensitive
+ansible/inventories/*.retry
+ansible/inventories/primary.yml
+ansible/inventories/dr.yml
+group_vars/**/vault.yml
+host_vars/**/vault.yml
+
+# Oracle software media and installers
+*.zip
+*.jar
+*.tar.gz
+*.gz
+media/
+
+# Logs and temp
+*.log
+tmp/
+.tmp/
+*.tmp
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
+Thumbs.db

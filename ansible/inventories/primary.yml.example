@@ -1,0 +1,223 @@
+---
+# primary.yml.example — copy to primary.yml and fill in real hostnames/IPs
+# primary.yml is .gitignored — NEVER commit real inventory values
+
+all:
+  vars:
+    ansible_user: oracle
+    ansible_ssh_private_key_file: ~/.ssh/oracle_iac_rsa
+    env: primary
+    oracle_base: /u01/oracle
+    oracle_products: /u01/oracle/products
+    oracle_config: /u01/oracle/config
+    oracle_logs: /u01/oracle/logs
+
+  children:
+    ohs_servers:
+      hosts:
+        ohs-vm-01.company.internal:
+        ohs-vm-02.company.internal:
+        ohs-vm-03.company.internal:
+
+    ccb_admin:
+      hosts:
+        ccb-admin-vm-01.company.internal:
+      vars:
+        wls_domain: ccb_domain
+        wls_admin_port: 7001
+
+    ccb_web:
+      hosts:
+        ccb-web-vm-01.company.internal:
+          wls_ms_name: CCB-WEB-MS-01
+          wls_ms_port: 7002
+        ccb-web-vm-02.company.internal:
+          wls_ms_name: CCB-WEB-MS-02
+          wls_ms_port: 7002
+      vars:
+        wls_cluster: CCB-WEB
+        wls_domain: ccb_domain
+
+    ccb_iws:
+      hosts:
+        ccb-iws-vm-01.company.internal:
+          wls_ms_name: CCB-IWS-MS-01
+          wls_ms_port: 7004
+        ccb-iws-vm-02.company.internal:
+          wls_ms_name: CCB-IWS-MS-02
+          wls_ms_port: 7004
+      vars:
+        wls_cluster: CCB-IWS
+        wls_domain: ccb_domain
+
+    ccb_batch:
+      hosts:
+        ccb-batch-vm-01.company.internal:
+          wls_ms_name: CCB-BATCH-MS-01
+          wls_ms_port: 7006
+        ccb-batch-vm-02.company.internal:
+          wls_ms_name: CCB-BATCH-MS-02
+          wls_ms_port: 7006
+      vars:
+        wls_cluster: CCB-BATCH
+        wls_domain: ccb_domain
+
+    mdm_admin:
+      hosts:
+        mdm-admin-vm-01.company.internal:
+      vars:
+        wls_domain: mdm_domain
+        wls_admin_port: 7011
+
+    mdm_web:
+      hosts:
+        mdm-web-vm-01.company.internal:
+          wls_ms_name: MDM-WEB-MS-01
+          wls_ms_port: 7012
+        mdm-web-vm-02.company.internal:
+          wls_ms_name: MDM-WEB-MS-02
+          wls_ms_port: 7012
+      vars:
+        wls_cluster: MDM-WEB
+        wls_domain: mdm_domain
+
+    mdm_iws:
+      hosts:
+        mdm-iws-vm-01.company.internal:
+          wls_ms_name: MDM-IWS-MS-01
+          wls_ms_port: 7014
+        mdm-iws-vm-02.company.internal:
+          wls_ms_name: MDM-IWS-MS-02
+          wls_ms_port: 7014
+      vars:
+        wls_cluster: MDM-IWS
+        wls_domain: mdm_domain
+
+    mdm_batch:
+      hosts:
+        mdm-batch-vm-01.company.internal:
+          wls_ms_name: MDM-BATCH-MS-01
+          wls_ms_port: 7016
+        mdm-batch-vm-02.company.internal:
+          wls_ms_name: MDM-BATCH-MS-02
+          wls_ms_port: 7016
+      vars:
+        wls_cluster: MDM-BATCH
+        wls_domain: mdm_domain
+
+    soa_int:
+      hosts:
+        soa-int-vm-01.company.internal:
+          wls_ms_name: SOA-INT-MS-01
+          wls_ms_port: 8002
+        soa-int-vm-02.company.internal:
+          wls_ms_name: SOA-INT-MS-02
+          wls_ms_port: 8002
+        soa-int-wsm-vm-01.company.internal:
+          wls_ms_name: WSM-INT-MS-01
+          wls_ms_port: 8003
+      vars:
+        wls_domain: soa_int
+        wls_admin_port: 8001
+        soainfra_schema_prefix: INT
+
+    soa_if:
+      hosts:
+        soa-if-vm-01.company.internal:
+          wls_ms_name: SOA-IF-MS-01
+          wls_ms_port: 8012
+        soa-if-vm-02.company.internal:
+          wls_ms_name: SOA-IF-MS-02
+          wls_ms_port: 8012
+        soa-if-wsm-vm-01.company.internal:
+          wls_ms_name: WSM-IF-MS-01
+          wls_ms_port: 8013
+      vars:
+        wls_domain: soa_if
+        wls_admin_port: 8011
+        soainfra_schema_prefix: IF
+
+    soa_web:
+      hosts:
+        soa-web-vm-01.company.internal:
+          wls_ms_name: SOA-WEB-MS-01
+          wls_ms_port: 8022
+        soa-web-vm-02.company.internal:
+          wls_ms_name: SOA-WEB-MS-02
+          wls_ms_port: 8022
+        soa-web-wsm-vm-01.company.internal:
+          wls_ms_name: WSM-WEB-MS-01
+          wls_ms_port: 8023
+      vars:
+        wls_domain: soa_web
+        wls_admin_port: 8021
+        soainfra_schema_prefix: WEB
+
+    soa_sgg:
+      hosts:
+        soa-sgg-vm-01.company.internal:
+          wls_ms_name: SOA-SGG-MS-01
+          wls_ms_port: 8032
+        soa-sgg-vm-02.company.internal:
+          wls_ms_name: SOA-SGG-MS-02
+          wls_ms_port: 8032
+        soa-sgg-wsm-vm-01.company.internal:
+          wls_ms_name: WSM-SGG-MS-01
+          wls_ms_port: 8033
+      vars:
+        wls_domain: soa_sgg
+        wls_admin_port: 8031
+        soainfra_schema_prefix: SGG
+
+    db_nodes:
+      hosts:
+        ccb-rac-01.company.internal:
+          db_cluster: ccb_rac
+        ccb-rac-02.company.internal:
+          db_cluster: ccb_rac
+        mdm-rac-01.company.internal:
+          db_cluster: mdm_rac
+        mdm-rac-02.company.internal:
+          db_cluster: mdm_rac
+        soa-rac-01.company.internal:
+          db_cluster: soa_rac
+        soa-rac-02.company.internal:
+          db_cluster: soa_rac
+
+    kvm_hosts:
+      hosts:
+        kvm-host-ccb-a.company.internal:
+        kvm-host-ccb-b.company.internal:
+        kvm-host-mdm-a.company.internal:
+        kvm-host-mdm-b.company.internal:
+        kvm-host-soa-a.company.internal:
+        kvm-host-soa-b.company.internal:
+        kvm-host-web.company.internal:
+
+    ccb_all:
+      children:
+        ccb_admin:
+        ccb_web:
+        ccb_iws:
+        ccb_batch:
+
+    mdm_all:
+      children:
+        mdm_admin:
+        mdm_web:
+        mdm_iws:
+        mdm_batch:
+
+    soa_all:
+      children:
+        soa_int:
+        soa_if:
+        soa_web:
+        soa_sgg:
+
+    app_servers:
+      children:
+        ohs_servers:
+        ccb_all:
+        mdm_all:
+        soa_all:

@@ -1,0 +1,16 @@
+---
+# vault.yml.example — copy to vault.yml and encrypt with: ansible-vault encrypt vault.yml
+# vault.yml is .gitignored — NEVER commit
+
+# BeyondTrust PasswordSafe
+vault_bt_client_id:         "CHANGE_ME"
+vault_bt_client_secret:     "CHANGE_ME"
+
+# Entra ID SAML
+vault_entra_tenant_id:      "CHANGE_ME"
+
+# Ansible bootstrap only — these are rotated by BeyondTrust after first run
+vault_wls_admin_password:   "CHANGE_ME"
+vault_ccb_db_password:      "CHANGE_ME"
+vault_mdm_db_password:      "CHANGE_ME"
+vault_soa_db_password:      "CHANGE_ME"
