@@ -26,19 +26,19 @@ resource "libvirt_volume" "data_disk" {
 }
 
 resource "libvirt_cloudinit_disk" "init" {
-  name      = "${var.vm_name}-init.iso"
-  pool      = var.storage_pool
+  name = "${var.vm_name}-init.iso"
+  pool = var.storage_pool
   user_data = templatefile("${path.module}/templates/cloud-init.yaml.tpl", {
-    vm_name    = var.vm_name
-    ssh_pubkey = var.ssh_pubkey
+    vm_name     = var.vm_name
+    ssh_pubkey  = var.ssh_pubkey
     oracle_user = "oracle"
   })
 }
 
 resource "libvirt_domain" "vm" {
-  name    = var.vm_name
-  memory  = var.memory_mb
-  vcpu    = var.vcpu
+  name   = var.vm_name
+  memory = var.memory_mb
+  vcpu   = var.vcpu
 
   cloudinit = libvirt_cloudinit_disk.init.id
 

@@ -23,39 +23,39 @@ locals {
 
   # CC&B VM definitions — 7 VMs across 2 KVM hosts (anti-affinity: -a/-b pairs)
   ccb_vms = {
-    "ccb-admin-vm-01"  = { role = "admin",  vcpu = 4,  memory_mb = 16384,  kvm_host = "kvm-host-ccb-a", data_disk_gb = 300 }
-    "ccb-web-vm-01"    = { role = "web",    vcpu = 16, memory_mb = 65536,  kvm_host = "kvm-host-ccb-a", data_disk_gb = 500 }
-    "ccb-web-vm-02"    = { role = "web",    vcpu = 16, memory_mb = 65536,  kvm_host = "kvm-host-ccb-b", data_disk_gb = 500 }
-    "ccb-iws-vm-01"    = { role = "iws",    vcpu = 8,  memory_mb = 32768,  kvm_host = "kvm-host-ccb-a", data_disk_gb = 500 }
-    "ccb-iws-vm-02"    = { role = "iws",    vcpu = 8,  memory_mb = 32768,  kvm_host = "kvm-host-ccb-b", data_disk_gb = 500 }
-    "ccb-batch-vm-01"  = { role = "batch",  vcpu = 32, memory_mb = 131072, kvm_host = "kvm-host-ccb-a", data_disk_gb = 1000 }
-    "ccb-batch-vm-02"  = { role = "batch",  vcpu = 32, memory_mb = 131072, kvm_host = "kvm-host-ccb-b", data_disk_gb = 1000 }
+    "ccb-admin-vm-01" = { role = "admin", vcpu = 4, memory_mb = 16384, kvm_host = "kvm-host-ccb-a", data_disk_gb = 300 }
+    "ccb-web-vm-01"   = { role = "web", vcpu = 16, memory_mb = 65536, kvm_host = "kvm-host-ccb-a", data_disk_gb = 500 }
+    "ccb-web-vm-02"   = { role = "web", vcpu = 16, memory_mb = 65536, kvm_host = "kvm-host-ccb-b", data_disk_gb = 500 }
+    "ccb-iws-vm-01"   = { role = "iws", vcpu = 8, memory_mb = 32768, kvm_host = "kvm-host-ccb-a", data_disk_gb = 500 }
+    "ccb-iws-vm-02"   = { role = "iws", vcpu = 8, memory_mb = 32768, kvm_host = "kvm-host-ccb-b", data_disk_gb = 500 }
+    "ccb-batch-vm-01" = { role = "batch", vcpu = 32, memory_mb = 131072, kvm_host = "kvm-host-ccb-a", data_disk_gb = 1000 }
+    "ccb-batch-vm-02" = { role = "batch", vcpu = 32, memory_mb = 131072, kvm_host = "kvm-host-ccb-b", data_disk_gb = 1000 }
   }
 
   # MDM VM definitions — 7 VMs across 2 KVM hosts
   mdm_vms = {
-    "mdm-admin-vm-01"  = { role = "admin",  vcpu = 4,  memory_mb = 16384,  kvm_host = "kvm-host-mdm-a", data_disk_gb = 300 }
-    "mdm-web-vm-01"    = { role = "web",    vcpu = 16, memory_mb = 65536,  kvm_host = "kvm-host-mdm-a", data_disk_gb = 500 }
-    "mdm-web-vm-02"    = { role = "web",    vcpu = 16, memory_mb = 65536,  kvm_host = "kvm-host-mdm-b", data_disk_gb = 500 }
-    "mdm-iws-vm-01"    = { role = "iws",    vcpu = 8,  memory_mb = 32768,  kvm_host = "kvm-host-mdm-a", data_disk_gb = 500 }
-    "mdm-iws-vm-02"    = { role = "iws",    vcpu = 8,  memory_mb = 32768,  kvm_host = "kvm-host-mdm-b", data_disk_gb = 500 }
-    "mdm-batch-vm-01"  = { role = "batch",  vcpu = 32, memory_mb = 131072, kvm_host = "kvm-host-mdm-a", data_disk_gb = 1000 }
-    "mdm-batch-vm-02"  = { role = "batch",  vcpu = 32, memory_mb = 131072, kvm_host = "kvm-host-mdm-b", data_disk_gb = 1000 }
+    "mdm-admin-vm-01" = { role = "admin", vcpu = 4, memory_mb = 16384, kvm_host = "kvm-host-mdm-a", data_disk_gb = 300 }
+    "mdm-web-vm-01"   = { role = "web", vcpu = 16, memory_mb = 65536, kvm_host = "kvm-host-mdm-a", data_disk_gb = 500 }
+    "mdm-web-vm-02"   = { role = "web", vcpu = 16, memory_mb = 65536, kvm_host = "kvm-host-mdm-b", data_disk_gb = 500 }
+    "mdm-iws-vm-01"   = { role = "iws", vcpu = 8, memory_mb = 32768, kvm_host = "kvm-host-mdm-a", data_disk_gb = 500 }
+    "mdm-iws-vm-02"   = { role = "iws", vcpu = 8, memory_mb = 32768, kvm_host = "kvm-host-mdm-b", data_disk_gb = 500 }
+    "mdm-batch-vm-01" = { role = "batch", vcpu = 32, memory_mb = 131072, kvm_host = "kvm-host-mdm-a", data_disk_gb = 1000 }
+    "mdm-batch-vm-02" = { role = "batch", vcpu = 32, memory_mb = 131072, kvm_host = "kvm-host-mdm-b", data_disk_gb = 1000 }
   }
 
   # SOA Suite VM definitions — 3 VMs per domain (2 MS + 1 WSM), 4 domains = 12 VMs
   soa_vms = {
-    "soa-int-vm-01"     = { role = "soa-ms",  vcpu = 8, memory_mb = 32768, kvm_host = "kvm-host-soa-a", data_disk_gb = 500 }
-    "soa-int-vm-02"     = { role = "soa-ms",  vcpu = 8, memory_mb = 32768, kvm_host = "kvm-host-soa-b", data_disk_gb = 500 }
+    "soa-int-vm-01"     = { role = "soa-ms", vcpu = 8, memory_mb = 32768, kvm_host = "kvm-host-soa-a", data_disk_gb = 500 }
+    "soa-int-vm-02"     = { role = "soa-ms", vcpu = 8, memory_mb = 32768, kvm_host = "kvm-host-soa-b", data_disk_gb = 500 }
     "soa-int-wsm-vm-01" = { role = "soa-wsm", vcpu = 4, memory_mb = 16384, kvm_host = "kvm-host-soa-a", data_disk_gb = 300 }
-    "soa-if-vm-01"      = { role = "soa-ms",  vcpu = 8, memory_mb = 32768, kvm_host = "kvm-host-soa-a", data_disk_gb = 500 }
-    "soa-if-vm-02"      = { role = "soa-ms",  vcpu = 8, memory_mb = 32768, kvm_host = "kvm-host-soa-b", data_disk_gb = 500 }
+    "soa-if-vm-01"      = { role = "soa-ms", vcpu = 8, memory_mb = 32768, kvm_host = "kvm-host-soa-a", data_disk_gb = 500 }
+    "soa-if-vm-02"      = { role = "soa-ms", vcpu = 8, memory_mb = 32768, kvm_host = "kvm-host-soa-b", data_disk_gb = 500 }
     "soa-if-wsm-vm-01"  = { role = "soa-wsm", vcpu = 4, memory_mb = 16384, kvm_host = "kvm-host-soa-b", data_disk_gb = 300 }
-    "soa-web-vm-01"     = { role = "soa-ms",  vcpu = 8, memory_mb = 32768, kvm_host = "kvm-host-soa-a", data_disk_gb = 500 }
-    "soa-web-vm-02"     = { role = "soa-ms",  vcpu = 8, memory_mb = 32768, kvm_host = "kvm-host-soa-b", data_disk_gb = 500 }
+    "soa-web-vm-01"     = { role = "soa-ms", vcpu = 8, memory_mb = 32768, kvm_host = "kvm-host-soa-a", data_disk_gb = 500 }
+    "soa-web-vm-02"     = { role = "soa-ms", vcpu = 8, memory_mb = 32768, kvm_host = "kvm-host-soa-b", data_disk_gb = 500 }
     "soa-web-wsm-vm-01" = { role = "soa-wsm", vcpu = 4, memory_mb = 16384, kvm_host = "kvm-host-soa-a", data_disk_gb = 300 }
-    "soa-sgg-vm-01"     = { role = "soa-ms",  vcpu = 8, memory_mb = 32768, kvm_host = "kvm-host-soa-a", data_disk_gb = 500 }
-    "soa-sgg-vm-02"     = { role = "soa-ms",  vcpu = 8, memory_mb = 32768, kvm_host = "kvm-host-soa-b", data_disk_gb = 500 }
+    "soa-sgg-vm-01"     = { role = "soa-ms", vcpu = 8, memory_mb = 32768, kvm_host = "kvm-host-soa-a", data_disk_gb = 500 }
+    "soa-sgg-vm-02"     = { role = "soa-ms", vcpu = 8, memory_mb = 32768, kvm_host = "kvm-host-soa-b", data_disk_gb = 500 }
     "soa-sgg-wsm-vm-01" = { role = "soa-wsm", vcpu = 4, memory_mb = 16384, kvm_host = "kvm-host-soa-b", data_disk_gb = 300 }
   }
 

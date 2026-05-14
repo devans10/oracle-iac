@@ -28,19 +28,19 @@ locals {
   dev_vms = {
     # CC&B: 1 admin VM + 1 MS VM (web/iws/batch colocated via inventory mapping)
     "dev-ccb-admin-vm-01" = { app = "ccb", role = "admin", vcpu = 4, memory_mb = 16384, data_disk_gb = 200 }
-    "dev-ccb-ms-vm-01"    = { app = "ccb", role = "ms",    vcpu = 8, memory_mb = 32768, data_disk_gb = 300 }
+    "dev-ccb-ms-vm-01"    = { app = "ccb", role = "ms", vcpu = 8, memory_mb = 32768, data_disk_gb = 300 }
 
     # MDM: same 2-VM footprint
     "dev-mdm-admin-vm-01" = { app = "mdm", role = "admin", vcpu = 4, memory_mb = 16384, data_disk_gb = 200 }
-    "dev-mdm-ms-vm-01"    = { app = "mdm", role = "ms",    vcpu = 8, memory_mb = 32768, data_disk_gb = 300 }
+    "dev-mdm-ms-vm-01"    = { app = "mdm", role = "ms", vcpu = 8, memory_mb = 32768, data_disk_gb = 300 }
 
     # SOA: 1 VM per domain (Admin + MS colocated). Only soa_int deployed by default in dev.
     # Enable additional domains by adding entries here and updating group_vars/dev/sizing.yml.
-    "dev-soa-int-vm-01"   = { app = "soa", role = "soa-int", vcpu = 8, memory_mb = 32768, data_disk_gb = 300 }
+    "dev-soa-int-vm-01" = { app = "soa", role = "soa-int", vcpu = 8, memory_mb = 32768, data_disk_gb = 300 }
 
     # OHS: optional in dev — controlled by enable_ohs in group_vars/dev/sizing.yml.
     # Remove this entry to skip OHS VM provisioning entirely in dev.
-    "dev-ohs-vm-01"       = { app = "ohs", role = "ohs",     vcpu = 2, memory_mb = 4096,  data_disk_gb = 100 }
+    "dev-ohs-vm-01" = { app = "ohs", role = "ohs", vcpu = 2, memory_mb = 4096, data_disk_gb = 100 }
   }
 }
 
