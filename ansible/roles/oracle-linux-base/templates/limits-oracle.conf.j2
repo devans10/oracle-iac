@@ -1,0 +1,16 @@
+# Managed by Ansible — oracle-linux-base role
+# OS limits for oracle and cissys users
+
+{{ oracle_user }}   soft   nofile    {{ os_nofile_soft }}
+{{ oracle_user }}   hard   nofile    {{ os_nofile_hard }}
+{{ oracle_user }}   soft   nproc     {{ os_nproc_soft }}
+{{ oracle_user }}   hard   nproc     {{ os_nproc_hard }}
+{{ oracle_user }}   soft   memlock   unlimited
+{{ oracle_user }}   hard   memlock   unlimited
+{{ oracle_user }}   soft   stack     10240
+{{ oracle_user }}   hard   stack     32768
+
+{{ cissys_user }}   soft   nofile    {{ os_nofile_soft }}
+{{ cissys_user }}   hard   nofile    {{ os_nofile_hard }}
+{{ cissys_user }}   soft   nproc     {{ os_nproc_soft }}
+{{ cissys_user }}   hard   nproc     {{ os_nproc_hard }}

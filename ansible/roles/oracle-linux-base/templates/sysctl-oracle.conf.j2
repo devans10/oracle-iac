@@ -1,0 +1,21 @@
+# Managed by Ansible — oracle-linux-base role
+# Oracle-recommended kernel parameters
+
+fs.file-max           = {{ kernel_file_max }}
+fs.aio-max-nr         = 1048576
+
+kernel.shmall          = {{ kernel_shmall }}
+kernel.shmmax          = {{ kernel_shmmax }}
+kernel.shmmni          = {{ kernel_shmmni }}
+kernel.sem             = {{ kernel_sem }}
+kernel.panic_on_oops   = 1
+
+net.core.rmem_default  = 262144
+net.core.rmem_max      = 4194304
+net.core.wmem_default  = 262144
+net.core.wmem_max      = 1048576
+net.ipv4.ip_local_port_range = 9000 65500
+
+vm.swappiness          = 10
+vm.dirty_background_ratio = 3
+vm.dirty_ratio         = 15

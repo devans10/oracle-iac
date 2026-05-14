@@ -1,0 +1,16 @@
+---
+# ohs.yml — Install and configure Oracle HTTP Server.
+# Skipped entirely when enable_ohs is false (dev environments).
+# OHS acts as the reverse proxy for CC&B-WEB and MDM-WEB clusters only.
+# Per ADR-006: Batch and IWS clusters are NOT proxied through OHS.
+
+- name: Install Oracle HTTP Server
+  hosts: ohs_servers
+  gather_facts: true
+  pre_tasks:
+    - name: Skip OHS setup when disabled
+      ansible.builtin.meta: end_play
+      when: not (enable_ohs | bool)
+  roles:
+    - role: oracle-linux-base
+    - role: oracle-http-server

@@ -1,1 +1,131 @@
---- # oracle-linux-base tasks
+---
+# oracle-linux-base — OS baseline for all Oracle application VMs.
+# Runs once after VM provisioning; all tasks are idempotent.
+
+- name: Format and mount data disk
+  tags: [install]
+  block:
+    - name: Create XFS filesystem on data disk
+      ansible.builtin.filesystem:
+        fstype: "{{ data_disk_fstype }}"
+        dev: "{{ data_disk_device }}"
+      become: true
+
+    - name: Mount data disk at /u01
+      ansible.posix.mount:
+        path: "{{ data_disk_mount }}"
+        src: "{{ data_disk_device }}"
+        fstype: "{{ data_disk_fstype }}"
+        opts: defaults,nofail
+        state: mounted
+      become: true
+
+- name: Install Oracle prerequisite packages
+  ansible.builtin.package:
+    name: "{{ oracle_base_packages }}"
+    state: present
+  become: true
+  tags: [install]
+
+- name: Create oinstall and dba groups
+  ansible.builtin.group:
+    name: "{{ item.name }}"
+    gid: "{{ item.gid }}"
+    state: present
+  loop:
+    - { name: oinstall,              gid: "{{ oracle_gid }}" }
+    - { name: dba,                   gid: 54323 }
+    - { name: "{{ cissys_group }}", gid: "{{ cissys_gid }}" }
+  loop_control:
+    label: "{{ item.name }}"
+  become: true
+  tags: [configure]
+
+- name: Create oracle OS user
+  ansible.builtin.user:
+    name: "{{ oracle_user }}"
+    uid: "{{ oracle_uid }}"
+    group: oinstall
+    groups: [dba]
+    shell: /bin/bash
+    home: "/home/{{ oracle_user }}"
+    create_home: true
+    comment: Oracle Software Owner
+    state: present
+  become: true
+  tags: [configure]
+
+- name: Create cissys OS user
+  ansible.builtin.user:
+    name: "{{ cissys_user }}"
+    uid: "{{ cissys_uid }}"
+    group: "{{ cissys_group }}"
+    shell: /bin/bash
+    home: "/home/{{ cissys_user }}"
+    create_home: true
+    comment: OUAF Application Owner
+    state: present
+  become: true
+  tags: [configure]
+
+- name: Create Oracle directory structure
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ oracle_user }}"
+    group: oinstall
+    mode: "0755"
+  loop: "{{ oracle_base_dirs }}"
+  become: true
+  tags: [configure]
+
+- name: Apply Oracle kernel parameters
+  ansible.builtin.template:
+    src: sysctl-oracle.conf.j2
+    dest: /etc/sysctl.d/99-oracle.conf
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  notify: reload sysctl
+  tags: [configure]
+
+- name: Apply Oracle OS limits
+  ansible.builtin.template:
+    src: limits-oracle.conf.j2
+    dest: /etc/security/limits.d/99-oracle.conf
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  tags: [configure]
+
+- name: Disable firewalld on app VMs
+  ansible.builtin.service:
+    name: firewalld
+    state: stopped
+    enabled: false
+  become: true
+  when: "'ohs_servers' not in group_names"
+  tags: [configure]
+
+- name: Ensure firewalld is running on OHS VMs
+  ansible.builtin.service:
+    name: firewalld
+    state: started
+    enabled: true
+  become: true
+  when: "'ohs_servers' in group_names"
+  tags: [configure]
+
+- name: Populate /etc/hosts with cluster member entries
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: "^.+\\s{{ item }}$"
+    line: "{{ hostvars[item]['ansible_host'] | default(item) }}  {{ item }}"
+    state: present
+  loop: "{{ groups['app_servers'] | default([]) }}"
+  loop_control:
+    label: "{{ item }}"
+  become: true
+  tags: [configure]
