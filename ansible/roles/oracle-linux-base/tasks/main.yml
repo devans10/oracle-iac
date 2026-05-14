@@ -6,7 +6,7 @@
   tags: [install]
   block:
     - name: Create XFS filesystem on data disk
-      ansible.builtin.filesystem:
+      community.general.filesystem:
         fstype: "{{ data_disk_fstype }}"
         dev: "{{ data_disk_device }}"
       become: true
@@ -33,9 +33,9 @@
     gid: "{{ item.gid }}"
     state: present
   loop:
-    - { name: oinstall,              gid: "{{ oracle_gid }}" }
-    - { name: dba,                   gid: 54323 }
-    - { name: "{{ cissys_group }}", gid: "{{ cissys_gid }}" }
+    - {name: oinstall, gid: "{{ oracle_gid }}"}
+    - {name: dba, gid: 54323}
+    - {name: "{{ cissys_group }}", gid: "{{ cissys_gid }}"}
   loop_control:
     label: "{{ item.name }}"
   become: true

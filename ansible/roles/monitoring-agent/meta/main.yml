@@ -1,7 +1,8 @@
 ---
 galaxy_info:
-  role_name: monitoring-agent
+  role_name: monitoring_agent
   author: oracle-iac
+  license: Apache-2.0
   description: ''
   min_ansible_version: '2.15'
 dependencies: []

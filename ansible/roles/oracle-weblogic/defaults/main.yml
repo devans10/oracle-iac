@@ -4,8 +4,8 @@
 # wls_version, wls_home, mw_home, and wls_installer are defined in
 # group_vars/all/main.yml and group_vars/all/sizing.yml respectively.
 
-wls_install_type:   WLS        # WLS = Server only; avoid pulling SOA/OSB components
-ora_inventory_dir:  "{{ oracle_products }}/oraInventory"
-wls_install_rsp:    "{{ oracle_stage }}/wls-install.rsp"
-ora_inst_loc:       /etc/oraInst.loc
-wls_install_log:    "{{ oracle_logs }}/wls-install.log"
+wls_install_type: WLS  # WLS = Server only; avoid pulling SOA/OSB components
+ora_inventory_dir: "{{ oracle_products }}/oraInventory"
+wls_install_rsp: "{{ oracle_stage }}/wls-install.rsp"
+ora_inst_loc: /etc/oraInst.loc
+wls_install_log: "{{ oracle_logs }}/wls-install.log"

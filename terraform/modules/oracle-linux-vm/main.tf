@@ -58,10 +58,4 @@ resource "libvirt_domain" "vm" {
   cpu {
     mode = "host-passthrough"
   }
-
-  tags = {
-    app  = var.app
-    role = var.role
-    env  = var.env
-  }
 }

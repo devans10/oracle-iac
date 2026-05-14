@@ -1,0 +1,61 @@
+---
+# MDM 25.10 installation playbook
+# Installs: JDK, WLS binaries, OUAF, MDM, configures 3 clusters (Web/IWS/Batch)
+# Prerequisites: Oracle Linux baseline complete, DB accessible
+
+- name: Install Java on MDM nodes
+  hosts: mdm_all
+  tags: [install, jdk]
+  roles:
+    - oracle-jdk
+
+- name: Install WebLogic binaries on MDM nodes
+  hosts: mdm_all
+  tags: [install, weblogic]
+  roles:
+    - oracle-weblogic
+
+- name: Install OUAF on MDM nodes
+  hosts: mdm_all
+  tags: [install, ouaf]
+  roles:
+    - oracle-ouaf
+
+- name: Install MDM application
+  hosts: mdm_all
+  tags: [install, mdm]
+  roles:
+    - oracle-mdm
+
+- name: Configure MDM WLS domain
+  hosts: mdm_admin
+  tags: [configure, domain]
+  roles:
+    - wls-domain-mdm
+
+- name: Configure MDM clusters (Web/IWS/Batch)
+  hosts: mdm_all
+  tags: [configure, cluster]
+  roles:
+    - wls-cluster-config
+
+- name: Configure Node Manager on MDM VMs
+  hosts: mdm_all
+  tags: [configure, nodemanager]
+  roles:
+    - oracle-node-manager
+
+- name: Configure Oracle RAC client on MDM nodes
+  hosts: mdm_all
+  tags: [configure, jdbc]
+  roles:
+    - oracle-rac-client
+
+- name: Deploy MDM IWS (WebServices.ear)
+  hosts: mdm_admin
+  tags: [deploy, iws]
+  roles:
+    - wls-iws-deploy
+  vars:
+    iws_domain: mdm_domain
+    iws_cluster: MDM-IWS

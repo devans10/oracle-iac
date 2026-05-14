@@ -1,10 +1,10 @@
 ---
 # oracle-linux-base defaults — overridden by group_vars/all/sizing.yml
 
-oracle_uid:   54321
-oracle_gid:   54321
-cissys_uid:   54322
-cissys_gid:   54322
+oracle_uid: 54321
+oracle_gid: 54321
+cissys_uid: 54322
+cissys_gid: 54322
 
 oracle_base_packages:
   - oracle-database-preinstall-19c
@@ -27,4 +27,4 @@ oracle_base_dirs:
 # Data disk device — second disk attached by Terraform (libvirt_volume.data_disk)
 data_disk_device: /dev/vdb
 data_disk_fstype: xfs
-data_disk_mount:  /u01
+data_disk_mount: /u01
