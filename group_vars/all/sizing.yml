@@ -1,0 +1,70 @@
+---
+# Sizing and feature flags — production defaults.
+# Override individual variables in the inventory's all.vars section for
+# non-production environments. See ansible/inventories/dev.yml.example.
+
+# --- WLS JVM Heap (MB) ---
+wls_admin_heap_mb:      4096
+wls_ms_heap_mb_web:     8192
+wls_ms_heap_mb_iws:     8192
+wls_ms_heap_mb_batch:   16384
+wls_ms_heap_mb_soa:     8192
+
+# --- WLS Thread Counts ---
+wls_thread_count_web:   200
+wls_thread_count_iws:   100
+wls_thread_count_batch: 50
+wls_thread_count_soa:   100
+
+# --- WLS Node Manager ---
+nm_start_timeout:       300
+nm_shutdown_timeout:    120
+
+# --- JDBC Connection Pool Sizes (production) ---
+# Per-cluster overrides in group_vars/<cluster_group>/main.yml if needed.
+jdbc_min_capacity:      10
+jdbc_max_capacity_web:  100
+jdbc_max_capacity_iws:  75
+jdbc_max_capacity_batch: 200
+jdbc_max_capacity_soa:  50
+jdbc_inactive_timeout:  300
+jdbc_test_frequency:    120
+
+# --- OS Kernel Parameters (production) ---
+kernel_shmall:          4194304
+kernel_shmmax:          4398046511104
+kernel_shmmni:          4096
+kernel_sem:             "250 32000 100 128"
+kernel_file_max:        6815744
+os_nofile_soft:         131072
+os_nofile_hard:         131072
+os_nproc_soft:          131072
+os_nproc_hard:          131072
+
+# --- Feature Flags (production: all enabled) ---
+# Set to false in dev inventory all.vars to skip installation of that component.
+enable_ohs:             true   # Install and configure Oracle HTTP Server
+enable_saml:            true   # Configure Entra ID SAML SSO (WEB clusters only)
+enable_nfs:             true   # Mount NFS shared directories (batch, IMD, SOA files)
+enable_monitoring:      true   # Install OS-level monitoring agent
+wls_production_mode:    true   # WLS domain production mode (false = dev mode, no encryption)
+
+# --- SOA Domain Selection ---
+# In dev, reduce to a single domain to save resources. Add domain names to enable them.
+# All four are enabled in production.
+enabled_soa_domains:
+  - soa_int
+  - soa_if
+  - soa_web
+  - soa_sgg
+
+# --- Media / Installer Paths ---
+# Installer ZIPs/RPMs are on a local media server or NFS share — never in this repo.
+media_base_path:        "/u01/oracle/media"
+jdk_installer:          "{{ media_base_path }}/jdk/jdk-21_linux-x64_bin.rpm"
+wls_installer:          "{{ media_base_path }}/wls/fmw_14.1.1.0.0_wls.jar"
+ouaf_installer:         "{{ media_base_path }}/ouaf/ouaf-installer.jar"
+ccb_installer:          "{{ media_base_path }}/ccb/ccb-25.10-installer.jar"
+mdm_installer:          "{{ media_base_path }}/mdm/mdm-25.10-installer.jar"
+soa_installer:          "{{ media_base_path }}/soa/fmw_12.2.1.4.0_soa.jar"
+ohs_installer:          "{{ media_base_path }}/ohs/fmw_12.2.1.4.0_ohs.jar"
