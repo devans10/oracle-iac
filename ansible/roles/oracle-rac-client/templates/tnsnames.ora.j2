@@ -1,0 +1,73 @@
+# tnsnames.ora — managed by Ansible (oracle-rac-client role). Do not edit manually.
+
+CCB_OLTP =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = {{ ccb_db_scan }})(PORT = {{ rac_listener_port }}))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = {{ ccb_db_service }})
+    )
+  )
+
+CCB_BATCH =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = {{ ccb_db_scan }})(PORT = {{ rac_listener_port }}))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = {{ ccb_db_service_batch }})
+    )
+  )
+
+MDM_ONLINE =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = {{ mdm_db_scan }})(PORT = {{ rac_listener_port }}))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = {{ mdm_db_service }})
+    )
+  )
+
+MDM_IMD =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = {{ mdm_db_scan }})(PORT = {{ rac_listener_port }}))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = {{ mdm_db_service_batch }})
+    )
+  )
+
+SOA_INT =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = {{ soa_db_scan }})(PORT = {{ rac_listener_port }}))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = {{ soa_db_service_int }})
+    )
+  )
+
+SOA_IF =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = {{ soa_db_scan }})(PORT = {{ rac_listener_port }}))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = {{ soa_db_service_if }})
+    )
+  )
+
+SOA_WEB =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = {{ soa_db_scan }})(PORT = {{ rac_listener_port }}))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = {{ soa_db_service_web }})
+    )
+  )
+
+SOA_SGG =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = {{ soa_db_scan }})(PORT = {{ rac_listener_port }}))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = {{ soa_db_service_sgg }})
+    )
+  )

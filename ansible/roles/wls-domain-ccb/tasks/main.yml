@@ -1,1 +1,69 @@
---- # wls-domain-ccb tasks
+---
+# wls-domain-ccb — creates the WLS domain for CC&B using WLST offline.
+# Runs on ccb_admin host only. Idempotent: guarded by domain config dir stat.
+
+- name: Ensure WLST script staging directory exists
+  ansible.builtin.file:
+    path: "{{ wlst_script_dir }}"
+    state: directory
+    owner: "{{ oracle_user }}"
+    group: "{{ oracle_group }}"
+    mode: "0750"
+  become: true
+  tags: [configure]
+
+- name: Check if CCB domain already exists
+  ansible.builtin.stat:
+    path: "{{ ccb_domain_home }}/config/config.xml"
+  register: ccb_domain_exists
+  tags: [configure]
+
+- name: Generate CCB domain creation WLST script
+  ansible.builtin.template:
+    src: ccb-domain.py.j2
+    dest: "{{ ccb_domain_script }}"
+    owner: "{{ oracle_user }}"
+    group: "{{ oracle_group }}"
+    mode: "0640"
+  become: true
+  become_user: "{{ oracle_user }}"
+  when: not ccb_domain_exists.stat.exists
+  tags: [configure]
+
+- name: Create CCB WLS domain
+  ansible.builtin.command:
+    cmd: "{{ wls_home }}/oracle_common/common/bin/wlst.sh {{ ccb_domain_script }}"
+    creates: "{{ ccb_domain_home }}/config/config.xml"
+  become: true
+  become_user: "{{ oracle_user }}"
+  environment:
+    JAVA_HOME: "{{ java_home }}"
+    MW_HOME: "{{ mw_home }}"
+  register: domain_create_result
+  changed_when: domain_create_result.rc == 0
+  failed_when: domain_create_result.rc not in [0]
+  when: not ccb_domain_exists.stat.exists
+  tags: [configure]
+
+- name: Verify CCB domain config.xml exists
+  ansible.builtin.stat:
+    path: "{{ ccb_domain_home }}/config/config.xml"
+  register: ccb_domain_verify
+  failed_when: not ccb_domain_verify.stat.exists
+  changed_when: false
+  tags: [validate]
+
+- name: Pack CCB domain for distribution to managed servers
+  ansible.builtin.command:
+    cmd: >
+      {{ wls_home }}/oracle_common/common/bin/pack.sh
+      -domain={{ ccb_domain_home }}
+      -template={{ oracle_stage }}/wlst/CCB_domain_template.jar
+      -template_name="CCB Domain"
+      -managed=true
+    creates: "{{ oracle_stage }}/wlst/CCB_domain_template.jar"
+  become: true
+  become_user: "{{ oracle_user }}"
+  environment:
+    JAVA_HOME: "{{ java_home }}"
+  tags: [configure]

@@ -1,1 +1,73 @@
---- # oracle-node-manager tasks
+---
+# oracle-node-manager — configures and starts WLS Node Manager as a systemd service.
+# Idempotent: service file template write + systemd enable/start.
+
+- name: Ensure Node Manager log directory exists
+  ansible.builtin.file:
+    path: "{{ nm_log_dir }}"
+    state: directory
+    owner: "{{ oracle_user }}"
+    group: "{{ oracle_group }}"
+    mode: "0755"
+  become: true
+  tags: [configure]
+
+- name: Configure nodemanager.properties
+  ansible.builtin.blockinfile:
+    path: "{{ nm_properties }}"
+    create: true
+    owner: "{{ oracle_user }}"
+    group: "{{ oracle_group }}"
+    mode: "0600"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK"
+    block: |
+      ListenAddress={{ ansible_default_ipv4.address }}
+      ListenPort={{ nm_port }}
+      NativeVersionEnabled=true
+      LogLimit=0
+      PropertiesVersion=12.2.1.4.0
+      AuthenticationEnabled=true
+      NodeManagerHome={{ nm_home }}
+      JavaHome={{ java_home }}
+      LogLevel=INFO
+      DomainsFileEnabled=true
+      StartScriptEnabled=true
+      StopScriptEnabled=false
+      QuitEnabled=false
+      LogCount=1
+      DomainsDirRemoteSharingEnabled=false
+      LogAppend=true
+      StateCheckInterval=500
+      CrashRecoveryEnabled=false
+      StartScriptName=startWebLogic.sh
+      ListenBacklog=50
+  become: true
+  become_user: "{{ oracle_user }}"
+  tags: [configure]
+
+- name: Install Node Manager systemd unit
+  ansible.builtin.template:
+    src: nodemanager.service.j2
+    dest: "/etc/systemd/system/{{ nm_service_name }}.service"
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  notify: Reload systemd
+  tags: [configure]
+
+- name: Enable and start Node Manager service
+  ansible.builtin.systemd:
+    name: "{{ nm_service_name }}"
+    enabled: true
+    state: started
+    daemon_reload: true
+  become: true
+  tags: [configure]
+
+- name: Verify Node Manager is listening on port {{ nm_port }}
+  ansible.builtin.wait_for:
+    host: "{{ ansible_default_ipv4.address }}"
+    port: "{{ nm_port }}"
+    timeout: 60
+  tags: [validate]

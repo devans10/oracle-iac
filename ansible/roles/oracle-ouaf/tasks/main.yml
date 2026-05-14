@@ -1,1 +1,89 @@
---- # oracle-ouaf tasks
+---
+# oracle-ouaf — installs Oracle Utilities Application Framework (OUAF 4.x).
+# OUAF is a prerequisite for both CC&B and MDM. Runs as cissys user.
+# Idempotent: guarded by stat check on the SPLEBASE initialSetup marker.
+
+- name: Ensure SPLEBASE directory exists
+  ansible.builtin.file:
+    path: "{{ app_splebase }}"
+    state: directory
+    owner: "{{ cissys_user }}"
+    group: "{{ cissys_group }}"
+    mode: "0755"
+  become: true
+  tags: [install]
+
+- name: Ensure OUAF stage directory exists
+  ansible.builtin.file:
+    path: "{{ ouaf_install_dir }}"
+    state: directory
+    owner: "{{ cissys_user }}"
+    group: "{{ cissys_group }}"
+    mode: "0755"
+  become: true
+  tags: [install]
+
+- name: Check if OUAF is already installed
+  ansible.builtin.stat:
+    path: "{{ app_splebase }}/bin/initialSetup.sh"
+  register: ouaf_installed
+  tags: [install]
+
+- name: Install OUAF framework
+  when: not ouaf_installed.stat.exists
+  tags: [install]
+  block:
+    - name: Render OUAF silent install properties
+      ansible.builtin.template:
+        src: ouaf-install.properties.j2
+        dest: "{{ ouaf_install_dir }}/install.properties"
+        owner: "{{ cissys_user }}"
+        group: "{{ cissys_group }}"
+        mode: "0640"
+      become: true
+      become_user: "{{ cissys_user }}"
+
+    - name: Run OUAF silent installer
+      ansible.builtin.command:
+        cmd: >
+          {{ java_home }}/bin/java
+          -jar {{ ouaf_installer }}
+          -f {{ ouaf_install_dir }}/install.properties
+          -i SILENT
+        creates: "{{ app_splebase }}/bin/initialSetup.sh"
+      become: true
+      become_user: "{{ cissys_user }}"
+      environment:
+        JAVA_HOME: "{{ java_home }}"
+        SPLEBASE: "{{ app_splebase }}"
+      register: ouaf_install_result
+      changed_when: ouaf_install_result.rc == 0
+      failed_when: ouaf_install_result.rc not in [0]
+
+  rescue:
+    - name: Show OUAF install log on failure
+      ansible.builtin.command:
+        cmd: tail -100 {{ ouaf_install_log }}
+      changed_when: false
+      failed_when: true
+
+- name: Verify OUAF initialSetup.sh exists
+  ansible.builtin.stat:
+    path: "{{ app_splebase }}/bin/initialSetup.sh"
+  register: ouaf_verify
+  failed_when: not ouaf_verify.stat.exists
+  changed_when: false
+  tags: [validate]
+
+- name: Set SPLEBASE environment variable for cissys user
+  ansible.builtin.lineinfile:
+    path: "/home/{{ cissys_user }}/.bash_profile"
+    regexp: '^export SPLEBASE='
+    line: "export SPLEBASE={{ app_splebase }}"
+    create: true
+    owner: "{{ cissys_user }}"
+    group: "{{ cissys_group }}"
+    mode: "0644"
+  become: true
+  become_user: "{{ cissys_user }}"
+  tags: [configure]

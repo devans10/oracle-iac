@@ -1,0 +1,14 @@
+# OUAF silent install properties — managed by Ansible.
+
+INSTALL_TYPE=SILENT
+ORACLE_BASE={{ oracle_base }}
+SPLEBASE={{ app_splebase }}
+SPLOUTPUT={{ oracle_logs }}/ouaf
+MW_HOME={{ mw_home }}
+JAVA_HOME={{ java_home }}
+WL_HOME={{ wls_home }}/wlserver
+DB_JDBC_URL=jdbc:oracle:thin:@//{{ ccb_db_scan }}:{{ rac_listener_port }}/{{ ccb_db_service }}
+DB_USER=CISADM
+ONLINE_DISPLAY_HOME={{ app_splebase }}/splapp
+INSTALL_DIR={{ app_splebase }}
+ENVIRONMENT_NAME={{ inventory_hostname }}

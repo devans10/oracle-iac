@@ -1,1 +1,82 @@
---- # oracle-ccb tasks
+---
+# oracle-ccb — installs CC&B 25.10 application on top of OUAF framework.
+# Prerequisite: oracle-ouaf role must have completed for ccb splebase.
+# Idempotent: guarded by stat check on CCB version marker file.
+
+- name: Ensure CC&B stage directory exists
+  ansible.builtin.file:
+    path: "{{ ccb_install_dir }}"
+    state: directory
+    owner: "{{ cissys_user }}"
+    group: "{{ cissys_group }}"
+    mode: "0755"
+  become: true
+  tags: [install]
+
+- name: Check if CC&B is already installed
+  ansible.builtin.stat:
+    path: "{{ ccb_splebase }}/etc/PRODUCT.RELEASE"
+  register: ccb_installed
+  tags: [install]
+
+- name: Install CC&B application
+  when: not ccb_installed.stat.exists
+  tags: [install]
+  block:
+    - name: Run CC&B silent installer
+      ansible.builtin.command:
+        cmd: >
+          {{ java_home }}/bin/java
+          -jar {{ ccb_installer }}
+          -f {{ ccb_install_dir }}/install.properties
+          -i SILENT
+        creates: "{{ ccb_splebase }}/etc/PRODUCT.RELEASE"
+      become: true
+      become_user: "{{ cissys_user }}"
+      environment:
+        JAVA_HOME: "{{ java_home }}"
+        SPLEBASE: "{{ ccb_splebase }}"
+      register: ccb_install_result
+      changed_when: ccb_install_result.rc == 0
+      failed_when: ccb_install_result.rc not in [0]
+
+    - name: Run OUAF initialSetup for CC&B
+      ansible.builtin.command:
+        cmd: "{{ ccb_splebase }}/bin/initialSetup.sh -t"
+        chdir: "{{ ccb_splebase }}"
+      become: true
+      become_user: "{{ cissys_user }}"
+      environment:
+        JAVA_HOME: "{{ java_home }}"
+        SPLEBASE: "{{ ccb_splebase }}"
+      register: ccb_init_result
+      changed_when: ccb_init_result.rc == 0
+      failed_when: ccb_init_result.rc not in [0]
+
+  rescue:
+    - name: Show CC&B install log on failure
+      ansible.builtin.command:
+        cmd: tail -100 {{ ccb_install_log }}
+      changed_when: false
+      failed_when: true
+
+- name: Verify CC&B PRODUCT.RELEASE exists
+  ansible.builtin.stat:
+    path: "{{ ccb_splebase }}/etc/PRODUCT.RELEASE"
+  register: ccb_verify
+  failed_when: not ccb_verify.stat.exists
+  changed_when: false
+  tags: [validate]
+
+- name: Confirm installed CC&B version
+  ansible.builtin.command:
+    cmd: grep -i 'version' {{ ccb_splebase }}/etc/PRODUCT.RELEASE
+  register: ccb_version_out
+  changed_when: false
+  failed_when: false
+  tags: [validate]
+
+- name: Show CC&B version
+  ansible.builtin.debug:
+    msg: "{{ ccb_version_out.stdout }}"
+  tags: [validate]

@@ -1,1 +1,8 @@
---- # wls-cluster-config defaults
+---
+# wls-cluster-config defaults — app-specific values set via role vars or extra vars.
+# Required when calling this role: domain_name, domain_home, admin_url,
+# admin_user, clusters (list), db_scan, db_services (dict).
+
+wlst_config_script: "{{ oracle_stage }}/wlst/cluster-config-{{ domain_name | default('domain') }}.py"
+jdbc_driver_class: oracle.jdbc.xa.client.OracleXADataSource
+jdbc_test_query: "SQL SELECT 1 FROM DUAL"

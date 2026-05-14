@@ -1,1 +1,5 @@
---- # oracle-node-manager defaults
+---
+nm_home: "{{ wls_home }}/oracle_common/common/nodemanager"
+nm_properties: "{{ nm_home }}/nodemanager.properties"
+nm_log_dir: "{{ oracle_logs }}/nodemanager"
+nm_service_name: oracle-nodemanager

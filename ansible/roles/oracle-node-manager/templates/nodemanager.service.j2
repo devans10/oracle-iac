@@ -1,0 +1,21 @@
+[Unit]
+Description=Oracle WebLogic Node Manager
+After=network.target
+
+[Service]
+Type=forking
+User={{ oracle_user }}
+Group={{ oracle_group }}
+Environment=JAVA_HOME={{ java_home }}
+Environment=WL_HOME={{ wls_home }}/wlserver
+Environment=MW_HOME={{ mw_home }}
+ExecStart={{ wls_home }}/oracle_common/common/bin/startNodeManager.sh
+ExecStop={{ wls_home }}/oracle_common/common/bin/stopNodeManager.sh
+PIDFile={{ nm_home }}/nodemanager.pid
+Restart=on-failure
+RestartSec=30
+StandardOutput=append:{{ nm_log_dir }}/nodemanager-service.log
+StandardError=append:{{ nm_log_dir }}/nodemanager-service.log
+
+[Install]
+WantedBy=multi-user.target

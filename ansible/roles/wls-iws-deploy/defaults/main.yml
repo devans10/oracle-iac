@@ -1,1 +1,3 @@
---- # wls-iws-deploy defaults
+---
+iws_ear_source: "{{ oracle_stage }}/iws/WebServices.ear"
+iws_deploy_script: "{{ oracle_stage }}/wlst/deploy-iws-{{ iws_domain | default('domain') }}.py"

@@ -1,0 +1,40 @@
+---
+# MDM group variables — apply to all mdm_* host groups.
+
+app: mdm
+app_splebase: "{{ oracle_base }}/mdm"
+
+domain_name: MDM_domain
+domain_home: "{{ oracle_config }}/MDM_domain"
+admin_host: "{{ hostvars[groups['mdm_admin'][0]]['ansible_host'] | default(groups['mdm_admin'][0]) }}"
+admin_port: 8001
+admin_user: weblogic
+admin_password: "{{ vault_wls_admin_password }}"
+
+jdbc_datasources:
+  - name: MDM-ONLINE-DS
+    jndi_name: jdbc/MDM_ONLINE
+    url: "jdbc:oracle:thin:@//{{ mdm_db_scan }}:1521/{{ mdm_db_service }}"
+    db_user: MDMADM
+    cluster: MDM-WEB
+    max_capacity: "{{ jdbc_max_capacity_web }}"
+  - name: MDM-IWS-DS
+    jndi_name: jdbc/MDM_IWS
+    url: "jdbc:oracle:thin:@//{{ mdm_db_scan }}:1521/{{ mdm_db_service }}"
+    db_user: MDMADM
+    cluster: MDM-IWS
+    max_capacity: "{{ jdbc_max_capacity_iws }}"
+  - name: MDM-IMD-DS
+    jndi_name: jdbc/MDM_IMD
+    url: "jdbc:oracle:thin:@//{{ mdm_db_scan }}:1521/{{ mdm_db_service_batch }}"
+    db_user: MDMADM
+    cluster: MDM-BATCH
+    max_capacity: "{{ jdbc_max_capacity_batch }}"
+
+wls_clusters:
+  - name: MDM-WEB
+    heap_mb: "{{ wls_ms_heap_mb_web }}"
+  - name: MDM-IWS
+    heap_mb: "{{ wls_ms_heap_mb_iws }}"
+  - name: MDM-BATCH
+    heap_mb: "{{ wls_ms_heap_mb_batch }}"

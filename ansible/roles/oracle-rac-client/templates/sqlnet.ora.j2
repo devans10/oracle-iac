@@ -1,0 +1,10 @@
+# sqlnet.ora — managed by Ansible (oracle-rac-client role). Do not edit manually.
+
+NAMES.DIRECTORY_PATH = (TNSNAMES, EZCONNECT)
+SQLNET.EXPIRE_TIME = 10
+
+# Disable reverse DNS lookups (faster connection in isolated networks)
+TCP.CONNECT_TIMEOUT = 30
+
+# Dead connection detection
+SQLNET.EXPIRE_TIME = 10

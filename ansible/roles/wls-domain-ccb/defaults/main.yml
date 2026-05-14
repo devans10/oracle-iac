@@ -1,1 +1,14 @@
---- # wls-domain-ccb defaults
+---
+ccb_domain_name: CCB_domain
+ccb_domain_home: "{{ oracle_config }}/CCB_domain"
+ccb_admin_host: "{{ hostvars[groups['ccb_admin'][0]]['ansible_host'] | default(groups['ccb_admin'][0]) }}"
+ccb_admin_port: 7001
+ccb_admin_user: weblogic
+# ccb_admin_password from vault: vault_wls_admin_password
+
+ccb_web_port: 7010
+ccb_iws_port: 7020
+ccb_batch_port: 7030
+
+wlst_script_dir: "{{ oracle_stage }}/wlst"
+ccb_domain_script: "{{ wlst_script_dir }}/create-ccb-domain.py"

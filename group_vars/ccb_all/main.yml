@@ -1,0 +1,43 @@
+---
+# CC&B group variables — apply to all ccb_* host groups.
+
+app: ccb
+app_splebase: "{{ oracle_base }}/ccb"
+
+# WLS Admin Server (used by wls-cluster-config and wls-iws-deploy)
+domain_name: CCB_domain
+domain_home: "{{ oracle_config }}/CCB_domain"
+admin_host: "{{ hostvars[groups['ccb_admin'][0]]['ansible_host'] | default(groups['ccb_admin'][0]) }}"
+admin_port: 7001
+admin_user: weblogic
+admin_password: "{{ vault_wls_admin_password }}"
+
+# JDBC data sources for wls-cluster-config
+jdbc_datasources:
+  - name: CCB-OLTP-DS
+    jndi_name: jdbc/CCB_OLTP
+    url: "jdbc:oracle:thin:@//{{ ccb_db_scan }}:1521/{{ ccb_db_service }}"
+    db_user: CISADM
+    cluster: CCB-WEB
+    max_capacity: "{{ jdbc_max_capacity_web }}"
+  - name: CCB-IWS-DS
+    jndi_name: jdbc/CCB_IWS
+    url: "jdbc:oracle:thin:@//{{ ccb_db_scan }}:1521/{{ ccb_db_service }}"
+    db_user: CISADM
+    cluster: CCB-IWS
+    max_capacity: "{{ jdbc_max_capacity_iws }}"
+  - name: CCB-BATCH-DS
+    jndi_name: jdbc/CCB_BATCH
+    url: "jdbc:oracle:thin:@//{{ ccb_db_scan }}:1521/{{ ccb_db_service_batch }}"
+    db_user: CISADM
+    cluster: CCB-BATCH
+    max_capacity: "{{ jdbc_max_capacity_batch }}"
+
+# WLS cluster JVM heap for wls-cluster-config
+wls_clusters:
+  - name: CCB-WEB
+    heap_mb: "{{ wls_ms_heap_mb_web }}"
+  - name: CCB-IWS
+    heap_mb: "{{ wls_ms_heap_mb_iws }}"
+  - name: CCB-BATCH
+    heap_mb: "{{ wls_ms_heap_mb_batch }}"

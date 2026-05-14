@@ -1,1 +1,10 @@
---- # oracle-rac-client defaults
+---
+tns_admin: "{{ oracle_base }}/config/network/admin"
+
+# SOA database services (one schema per domain on shared RAC cluster)
+soa_db_service_int: SOA_INT
+soa_db_service_if: SOA_IF
+soa_db_service_web: SOA_WEB
+soa_db_service_sgg: SOA_SGG
+
+rac_listener_port: 1521
