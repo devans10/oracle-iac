@@ -18,6 +18,13 @@ resource "libvirt_volume" "os_disk" {
   format           = "qcow2"
 }
 
+resource "libvirt_volume" "data_disk" {
+  name   = "${var.vm_name}-data.qcow2"
+  pool   = var.storage_pool
+  size   = var.data_disk_gb * 1073741824
+  format = "qcow2"
+}
+
 resource "libvirt_cloudinit_disk" "init" {
   name      = "${var.vm_name}-init.iso"
   pool      = var.storage_pool
@@ -37,6 +44,10 @@ resource "libvirt_domain" "vm" {
 
   disk {
     volume_id = libvirt_volume.os_disk.id
+  }
+
+  disk {
+    volume_id = libvirt_volume.data_disk.id
   }
 
   network_interface {

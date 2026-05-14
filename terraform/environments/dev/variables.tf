@@ -1,5 +1,5 @@
 variable "libvirt_uri" {
-  description = "libvirt connection URI for primary KVM hosts"
+  description = "libvirt connection URI for dev KVM host"
   type        = string
 }
 
@@ -9,9 +9,9 @@ variable "oracle_linux_image" {
 }
 
 variable "app_network" {
-  description = "libvirt network name for application VMs"
+  description = "libvirt network name for dev VMs"
   type        = string
-  default     = "oracle-app-net"
+  default     = "oracle-dev-net"
 }
 
 variable "ssh_pubkey" {
