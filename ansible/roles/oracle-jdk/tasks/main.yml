@@ -1,1 +1,44 @@
---- # oracle-jdk tasks
+---
+# oracle-jdk — Install Oracle JDK 21 from a local RPM on the media share.
+# Idempotent: guarded by creates on the final java binary path.
+
+- name: Check if JDK is already installed
+  ansible.builtin.stat:
+    path: "{{ jdk_home }}/bin/java"
+  register: jdk_installed
+  tags: [install]
+
+- name: Install JDK RPM from media share
+  ansible.builtin.package:
+    name: "{{ jdk_installer }}"
+    state: present
+  become: true
+  when: not jdk_installed.stat.exists
+  tags: [install]
+
+- name: Verify JDK binary is present
+  ansible.builtin.stat:
+    path: "{{ jdk_home }}/bin/java"
+  register: jdk_verify
+  failed_when: not jdk_verify.stat.exists
+  changed_when: false
+  tags: [validate]
+
+- name: Configure JAVA_HOME for all users
+  ansible.builtin.template:
+    src: oracle-java.sh.j2
+    dest: "{{ jdk_profile_script }}"
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  tags: [configure]
+
+- name: Set java alternatives
+  community.general.alternatives:
+    name: java
+    link: /usr/bin/java
+    path: "{{ jdk_home }}/bin/java"
+    priority: 100
+  become: true
+  tags: [configure]

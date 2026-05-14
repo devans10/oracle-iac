@@ -1,1 +1,7 @@
---- # oracle-jdk defaults
+---
+# oracle-jdk defaults — overridden by group_vars/all/main.yml
+
+# jdk_version, jdk_home, java_home, and jdk_installer are defined in
+# group_vars/all/main.yml and group_vars/all/sizing.yml respectively.
+
+jdk_profile_script: /etc/profile.d/oracle-java.sh
