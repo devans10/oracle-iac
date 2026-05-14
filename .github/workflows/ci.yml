@@ -45,13 +45,24 @@ jobs:
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: '1.7'
+      - name: Cache Terraform providers
+        uses: actions/cache@v4
+        with:
+          path: ~/.terraform.d/plugin-cache
+          key: ${{ runner.os }}-terraform-providers-${{ hashFiles('terraform/environments/primary/.terraform.lock.hcl') }}
+          restore-keys: |
+            ${{ runner.os }}-terraform-providers-
+      - name: Configure Terraform plugin cache
+        run: |
+          mkdir -p ~/.terraform.d/plugin-cache
+          echo 'plugin_cache_dir = "$HOME/.terraform.d/plugin-cache"' >> ~/.terraformrc
       - name: Terraform fmt check
         run: terraform fmt -check -recursive terraform/
       - name: Terraform validate primary
         run: |
           cd terraform/environments/primary
-          terraform init -backend=false
-          terraform validate
+          terraform init -backend=false -no-color
+          terraform validate -no-color
 
   secret-scan:
     name: Secret Scan
