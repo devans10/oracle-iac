@@ -40,18 +40,49 @@ jobs:
   terraform-validate:
     name: Terraform Validate
     runs-on: ubuntu-latest
+    env:
+      LIBVIRT_PROVIDER_VERSION: "0.7.6"
     steps:
       - uses: actions/checkout@v4
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: '1.7'
+      - name: Cache libvirt provider binary
+        id: cache-provider
+        uses: actions/cache@v4
+        with:
+          path: ~/.terraform.d/plugins
+          key: ${{ runner.os }}-libvirt-provider-${{ env.LIBVIRT_PROVIDER_VERSION }}
+      - name: Install libvirt provider from GitHub releases
+        if: steps.cache-provider.outputs.cache-hit != 'true'
+        run: |
+          PLUGIN_DIR="${HOME}/.terraform.d/plugins/registry.terraform.io/dmacvicar/libvirt/${LIBVIRT_PROVIDER_VERSION}/linux_amd64"
+          mkdir -p "${PLUGIN_DIR}"
+          curl -sL "https://github.com/dmacvicar/terraform-provider-libvirt/releases/download/v${LIBVIRT_PROVIDER_VERSION}/terraform-provider-libvirt_${LIBVIRT_PROVIDER_VERSION}_linux_amd64.zip" \
+            -o /tmp/libvirt-provider.zip
+          unzip -p /tmp/libvirt-provider.zip "terraform-provider-libvirt_v${LIBVIRT_PROVIDER_VERSION}" \
+            > "${PLUGIN_DIR}/terraform-provider-libvirt_v${LIBVIRT_PROVIDER_VERSION}"
+          chmod +x "${PLUGIN_DIR}/terraform-provider-libvirt_v${LIBVIRT_PROVIDER_VERSION}"
+      - name: Configure Terraform filesystem mirror
+        run: |
+          cat > ~/.terraformrc << EOF
+          provider_installation {
+            filesystem_mirror {
+              path    = "${HOME}/.terraform.d/plugins"
+              include = ["registry.terraform.io/dmacvicar/libvirt"]
+            }
+            direct {
+              exclude = ["registry.terraform.io/dmacvicar/libvirt"]
+            }
+          }
+          EOF
       - name: Terraform fmt check
         run: terraform fmt -check -recursive terraform/
       - name: Terraform validate primary
         run: |
           cd terraform/environments/primary
-          terraform init -backend=false
-          terraform validate
+          terraform init -backend=false -no-color
+          terraform validate -no-color
 
   secret-scan:
     name: Secret Scan

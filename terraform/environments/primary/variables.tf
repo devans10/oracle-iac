@@ -13,3 +13,8 @@ variable "app_network" {
   type        = string
   default     = "oracle-app-net"
 }
+
+variable "ssh_pubkey" {
+  description = "SSH public key injected into VMs for oracle and root users"
+  type        = string
+}

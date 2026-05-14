@@ -28,6 +28,7 @@ secrets/
 ansible/inventories/*.retry
 ansible/inventories/primary.yml
 ansible/inventories/dr.yml
+ansible/inventories/dev.yml
 group_vars/**/vault.yml
 host_vars/**/vault.yml
 

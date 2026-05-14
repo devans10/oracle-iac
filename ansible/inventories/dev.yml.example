@@ -1,0 +1,177 @@
+---
+# dev.yml.example — copy to dev.yml and fill in real hostnames/IPs
+# dev.yml is .gitignored — NEVER commit real inventory values
+#
+# Dev topology: colocated roles on fewer VMs. The same roles and playbooks
+# run as in production — only the inventory and variable overrides differ.
+#
+# VM layout (from terraform/environments/dev):
+#   dev-ccb-admin-vm-01  — CCB Admin Server + all CCB Managed Server clusters colocated
+#   dev-ccb-ms-vm-01     — (unused in this inventory; all CCB MS on admin VM)
+#   dev-mdm-admin-vm-01  — MDM Admin Server + all MDM Managed Server clusters colocated
+#   dev-soa-int-vm-01    — SOA soa_int Admin Server + MS colocated
+#   dev-ohs-vm-01        — OHS (optional; set enable_ohs: false to skip)
+
+all:
+  vars:
+    ansible_user: oracle
+    ansible_ssh_private_key_file: ~/.ssh/oracle_iac_rsa
+    env: dev
+
+    # --- Dev sizing overrides (replaces group_vars/all/sizing.yml defaults) ---
+    wls_admin_heap_mb:      1024
+    wls_ms_heap_mb_web:     2048
+    wls_ms_heap_mb_iws:     2048
+    wls_ms_heap_mb_batch:   4096
+    wls_ms_heap_mb_soa:     2048
+    wls_thread_count_web:   50
+    wls_thread_count_iws:   25
+    wls_thread_count_batch: 10
+    wls_thread_count_soa:   25
+    jdbc_max_capacity_web:  20
+    jdbc_max_capacity_iws:  10
+    jdbc_max_capacity_batch: 20
+    jdbc_max_capacity_soa:  10
+
+    # --- Dev feature flags ---
+    enable_ohs:          false   # skip OHS in dev; access WLS directly on port 7001
+    enable_saml:         false   # no Entra ID app registration in dev
+    enable_nfs:          false   # use local dirs instead of NFS mounts
+    enable_monitoring:   false   # skip monitoring agent in dev
+    wls_production_mode: false   # dev mode: no boot identity encryption required
+
+    # --- Dev: deploy only soa_int ---
+    enabled_soa_domains:
+      - soa_int
+
+    # --- Dev DB endpoints (single-instance, not RAC) ---
+    ccb_db_scan:         "dev-db.company.internal"
+    ccb_db_service:      "CCBDEV"
+    ccb_db_service_batch: "CCBDEV"
+    mdm_db_scan:         "dev-db.company.internal"
+    mdm_db_service:      "MDMDEV"
+    mdm_db_service_batch: "MDMDEV"
+    soa_db_scan:         "dev-db.company.internal"
+
+    # Filesystem roots (same paths as production — roles require no changes)
+    oracle_base:     /u01/oracle
+    oracle_products: "{{ oracle_base }}/products"
+    oracle_config:   "{{ oracle_base }}/config"
+    oracle_logs:     "{{ oracle_base }}/logs"
+    oracle_stage:    "{{ oracle_base }}/stage"
+
+  children:
+    # --- CC&B: all clusters colocated on dev-ccb-admin-vm-01 ---
+    ccb_admin:
+      hosts:
+        dev-ccb-admin-vm-01.company.internal:
+      vars:
+        wls_domain: ccb_domain
+        wls_admin_port: 7001
+
+    ccb_web:
+      hosts:
+        dev-ccb-admin-vm-01.company.internal:
+          wls_ms_name: CCB-WEB-MS-01
+          wls_ms_port: 7002
+      vars:
+        wls_cluster: CCB-WEB
+        wls_domain: ccb_domain
+
+    ccb_iws:
+      hosts:
+        dev-ccb-admin-vm-01.company.internal:
+          wls_ms_name: CCB-IWS-MS-01
+          wls_ms_port: 7004
+      vars:
+        wls_cluster: CCB-IWS
+        wls_domain: ccb_domain
+
+    ccb_batch:
+      hosts:
+        dev-ccb-admin-vm-01.company.internal:
+          wls_ms_name: CCB-BATCH-MS-01
+          wls_ms_port: 7006
+      vars:
+        wls_cluster: CCB-BATCH
+        wls_domain: ccb_domain
+
+    # --- MDM: all clusters colocated on dev-mdm-admin-vm-01 ---
+    mdm_admin:
+      hosts:
+        dev-mdm-admin-vm-01.company.internal:
+      vars:
+        wls_domain: mdm_domain
+        wls_admin_port: 7011
+
+    mdm_web:
+      hosts:
+        dev-mdm-admin-vm-01.company.internal:
+          wls_ms_name: MDM-WEB-MS-01
+          wls_ms_port: 7012
+      vars:
+        wls_cluster: MDM-WEB
+        wls_domain: mdm_domain
+
+    mdm_iws:
+      hosts:
+        dev-mdm-admin-vm-01.company.internal:
+          wls_ms_name: MDM-IWS-MS-01
+          wls_ms_port: 7014
+      vars:
+        wls_cluster: MDM-IWS
+        wls_domain: mdm_domain
+
+    mdm_batch:
+      hosts:
+        dev-mdm-admin-vm-01.company.internal:
+          wls_ms_name: MDM-BATCH-MS-01
+          wls_ms_port: 7016
+      vars:
+        wls_cluster: MDM-BATCH
+        wls_domain: mdm_domain
+
+    # --- SOA: soa_int only, Admin + MS colocated ---
+    soa_int:
+      hosts:
+        dev-soa-int-vm-01.company.internal:
+          wls_ms_name: SOA-INT-MS-01
+          wls_ms_port: 8002
+      vars:
+        wls_domain: soa_int
+        wls_admin_port: 8001
+        soainfra_schema_prefix: INT
+
+    # soa_if, soa_web, soa_sgg intentionally absent from dev inventory.
+    # Add entries here and to enabled_soa_domains to deploy additional domains.
+
+    # --- OHS: 1 node (usually disabled via enable_ohs: false above) ---
+    ohs_servers:
+      hosts:
+        dev-ohs-vm-01.company.internal:
+
+    # --- Convenience parent groups (same names as production) ---
+    ccb_all:
+      children:
+        ccb_admin:
+        ccb_web:
+        ccb_iws:
+        ccb_batch:
+
+    mdm_all:
+      children:
+        mdm_admin:
+        mdm_web:
+        mdm_iws:
+        mdm_batch:
+
+    soa_all:
+      children:
+        soa_int:
+
+    app_servers:
+      children:
+        ohs_servers:
+        ccb_all:
+        mdm_all:
+        soa_all:

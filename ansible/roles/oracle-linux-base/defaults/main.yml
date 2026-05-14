@@ -1,1 +1,30 @@
---- # oracle-linux-base defaults
+---
+# oracle-linux-base defaults — overridden by group_vars/all/sizing.yml
+
+oracle_uid: 54321
+oracle_gid: 54321
+cissys_uid: 54322
+cissys_gid: 54322
+
+oracle_base_packages:
+  - oracle-database-preinstall-19c
+  - nfs-utils
+  - net-tools
+  - unzip
+  - lsof
+  - curl
+  - wget
+  - sysstat
+  - bind-utils
+
+oracle_base_dirs:
+  - "{{ oracle_base }}"
+  - "{{ oracle_products }}"
+  - "{{ oracle_config }}"
+  - "{{ oracle_logs }}"
+  - "{{ oracle_stage }}"
+
+# Data disk device — second disk attached by Terraform (libvirt_volume.data_disk)
+data_disk_device: /dev/vdb
+data_disk_fstype: xfs
+data_disk_mount: /u01

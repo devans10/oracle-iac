@@ -1,0 +1,44 @@
+---
+# kvm-vms.yml — Verifies that Terraform-provisioned VMs are reachable before
+# proceeding with OS configuration. VMs are created by Terraform, not Ansible.
+# Run `terraform apply` in the appropriate environment first.
+
+- name: Verify VM connectivity
+  hosts: app_servers
+  gather_facts: false
+  tags: [validate]
+  tasks:
+    - name: Wait for SSH to become available
+      ansible.builtin.wait_for_connection:
+        timeout: 300
+        sleep: 10
+      tags: [validate]
+
+    - name: Gather minimal facts
+      ansible.builtin.setup:
+        gather_subset: [min]
+      tags: [validate]
+
+    - name: Assert Oracle Linux 8 or 9
+      ansible.builtin.assert:
+        that:
+          - ansible_distribution == "OracleLinux"
+          - ansible_distribution_major_version | int >= 8
+        fail_msg: >
+          {{ inventory_hostname }} is running {{ ansible_distribution }}
+          {{ ansible_distribution_version }} — Oracle Linux 8 or 9 required.
+        success_msg: "{{ inventory_hostname }} — {{ ansible_distribution }} {{ ansible_distribution_version }} OK"
+      tags: [validate]
+
+    - name: Verify data disk is present
+      ansible.builtin.stat:
+        path: /dev/vdb
+      register: data_disk_stat
+      become: true
+      tags: [validate]
+
+    - name: Fail if data disk is missing
+      ansible.builtin.fail:
+        msg: "/dev/vdb not found on {{ inventory_hostname }} — Terraform data disk may not have attached correctly."
+      when: not data_disk_stat.stat.exists
+      tags: [validate]

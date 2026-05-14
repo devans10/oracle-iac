@@ -1,1 +1,86 @@
---- # oracle-weblogic tasks
+---
+# oracle-weblogic — Install WLS 14.1.1.0 binaries via silent installer.
+# Idempotent: all installation steps guarded by creates on the WLS jar.
+# Runs as oracle user; become_user switches after root creates the stage dir.
+
+- name: Ensure stage directory exists
+  ansible.builtin.file:
+    path: "{{ oracle_stage }}"
+    state: directory
+    owner: "{{ oracle_user }}"
+    group: oinstall
+    mode: "0755"
+  become: true
+  tags: [install]
+
+- name: Check if WLS is already installed
+  ansible.builtin.stat:
+    path: "{{ wls_home }}/wlserver/server/lib/weblogic.jar"
+  register: wls_installed
+  tags: [install]
+
+- name: Render oraInst.loc
+  ansible.builtin.template:
+    src: oraInst.loc.j2
+    dest: "{{ ora_inst_loc }}"
+    owner: root
+    group: oinstall
+    mode: "0664"
+  become: true
+  when: not wls_installed.stat.exists
+  tags: [install]
+
+- name: Create oraInventory directory
+  ansible.builtin.file:
+    path: "{{ ora_inventory_dir }}"
+    state: directory
+    owner: "{{ oracle_user }}"
+    group: oinstall
+    mode: "0770"
+  become: true
+  when: not wls_installed.stat.exists
+  tags: [install]
+
+- name: Render WLS silent install response file
+  ansible.builtin.template:
+    src: wls-install.rsp.j2
+    dest: "{{ wls_install_rsp }}"
+    owner: "{{ oracle_user }}"
+    group: oinstall
+    mode: "0640"
+  become: true
+  become_user: "{{ oracle_user }}"
+  when: not wls_installed.stat.exists
+  tags: [install]
+
+- name: Run WLS silent installer
+  ansible.builtin.command:
+    cmd: >
+      {{ java_home }}/bin/java -jar {{ wls_installer }}
+      -silent
+      -invPtrLoc {{ ora_inst_loc }}
+      -responseFile {{ wls_install_rsp }}
+      -jreLoc {{ java_home }}
+    creates: "{{ wls_home }}/wlserver/server/lib/weblogic.jar"
+  become: true
+  become_user: "{{ oracle_user }}"
+  register: wls_install_result
+  changed_when: wls_install_result.rc == 0
+  failed_when: wls_install_result.rc not in [0]
+  tags: [install]
+
+- name: Verify WLS installation
+  ansible.builtin.stat:
+    path: "{{ wls_home }}/wlserver/server/lib/weblogic.jar"
+  register: wls_verify
+  failed_when: not wls_verify.stat.exists
+  changed_when: false
+  tags: [validate]
+
+- name: Verify wlst.sh is executable
+  ansible.builtin.stat:
+    path: "{{ wls_home }}/oracle_common/common/bin/wlst.sh"
+  register: wlst_verify
+  failed_when: not wlst_verify.stat.exists
+  changed_when: false
+  tags: [validate]

@@ -18,25 +18,36 @@ resource "libvirt_volume" "os_disk" {
   format           = "qcow2"
 }
 
+resource "libvirt_volume" "data_disk" {
+  name   = "${var.vm_name}-data.qcow2"
+  pool   = var.storage_pool
+  size   = var.data_disk_gb * 1073741824
+  format = "qcow2"
+}
+
 resource "libvirt_cloudinit_disk" "init" {
-  name      = "${var.vm_name}-init.iso"
-  pool      = var.storage_pool
+  name = "${var.vm_name}-init.iso"
+  pool = var.storage_pool
   user_data = templatefile("${path.module}/templates/cloud-init.yaml.tpl", {
-    vm_name    = var.vm_name
-    ssh_pubkey = var.ssh_pubkey
+    vm_name     = var.vm_name
+    ssh_pubkey  = var.ssh_pubkey
     oracle_user = "oracle"
   })
 }
 
 resource "libvirt_domain" "vm" {
-  name    = var.vm_name
-  memory  = var.memory_mb
-  vcpu    = var.vcpu
+  name   = var.vm_name
+  memory = var.memory_mb
+  vcpu   = var.vcpu
 
   cloudinit = libvirt_cloudinit_disk.init.id
 
   disk {
     volume_id = libvirt_volume.os_disk.id
+  }
+
+  disk {
+    volume_id = libvirt_volume.data_disk.id
   }
 
   network_interface {
@@ -46,11 +57,5 @@ resource "libvirt_domain" "vm" {
 
   cpu {
     mode = "host-passthrough"
-  }
-
-  tags = {
-    app  = var.app
-    role = var.role
-    env  = var.env
   }
 }

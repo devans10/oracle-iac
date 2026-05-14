@@ -1,0 +1,81 @@
+---
+# nfs.yml — Mount NFS shared directories on app VMs that need them.
+# Skipped entirely when enable_nfs is false (dev environments).
+# Per ADR-002: NFS used only for batch output, SOA file adapter, and MDM IMD ingest.
+
+- name: Mount NFS shared directories
+  hosts: app_servers
+  gather_facts: true
+  tasks:
+    - name: Skip NFS setup when disabled
+      ansible.builtin.meta: end_play
+      when: not (enable_nfs | bool)
+
+    - name: Install nfs-utils
+      ansible.builtin.package:
+        name: nfs-utils
+        state: present
+      become: true
+      tags: [install]
+
+    - name: Create NFS mount point directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ oracle_user }}"
+        group: oinstall
+        mode: "0755"
+      loop:
+        - "{{ nfs_mount_batch }}"
+        - "{{ nfs_mount_imd }}"
+        - "{{ nfs_mount_soa }}"
+      become: true
+      tags: [configure]
+
+    - name: Mount batch output NFS share
+      ansible.posix.mount:
+        path: "{{ nfs_mount_batch }}"
+        src: "{{ nfs_batch_output }}"
+        fstype: nfs
+        opts: rw,sync,hard,intr,timeo=600,retrans=3
+        state: mounted
+      become: true
+      when: "'ccb_all' in group_names or 'mdm_all' in group_names"
+      tags: [configure]
+
+    - name: Mount MDM IMD ingest NFS share
+      ansible.posix.mount:
+        path: "{{ nfs_mount_imd }}"
+        src: "{{ nfs_imd_ingest }}"
+        fstype: nfs
+        opts: rw,sync,hard,intr,timeo=600,retrans=3
+        state: mounted
+      become: true
+      when: "'mdm_all' in group_names"
+      tags: [configure]
+
+    - name: Mount SOA file adapter NFS share
+      ansible.posix.mount:
+        path: "{{ nfs_mount_soa }}"
+        src: "{{ nfs_soa_files }}"
+        fstype: nfs
+        opts: rw,sync,hard,intr,timeo=600,retrans=3
+        state: mounted
+      become: true
+      when: "'soa_all' in group_names"
+      tags: [configure]
+
+    - name: Create local fallback directories when NFS is disabled
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ oracle_user }}"
+        group: oinstall
+        mode: "0755"
+      loop:
+        - "{{ nfs_mount_batch }}"
+        - "{{ nfs_mount_imd }}"
+        - "{{ nfs_mount_soa }}"
+      become: true
+      when: not (enable_nfs | bool)
+      tags: [configure]

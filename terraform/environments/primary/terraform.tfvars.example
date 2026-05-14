@@ -4,3 +4,4 @@
 libvirt_uri        = "qemu+ssh://root@kvm-host-ccb-a.company.internal/system"
 oracle_linux_image = "/var/lib/libvirt/images/OracleLinux-9-base.qcow2"
 app_network        = "oracle-app-net"
+ssh_pubkey         = "ssh-rsa AAAA... your-key-here"
