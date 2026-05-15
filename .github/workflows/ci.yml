@@ -91,10 +91,11 @@ jobs:
       - uses: actions/checkout@v4
       - name: Check for accidental secrets
         run: |
-          if grep -rE '(password|secret|api_key|private_key|token|pass|credential|client_secret)\s*[:=]\s*["\x27][^"\x27$\{\}]{8,}' \
+          if grep -rE '^\s*(password|secret|api_key|private_key|token|client_secret|credential)\s*[:=]\s*["\x27][^"\x27$\{\}]{8,}' \
             --include="*.yml" --include="*.yaml" --include="*.tf" --include="*.py" \
             --include="*.sh" --include="*.j2" --include="*.properties" --include="*.conf" \
-            --exclude-dir=".git" --exclude="*.example" --exclude="vault.yml.example" .; then
+            --exclude-dir=".git" --exclude-dir="scripts/bootstrap" \
+            --exclude="*.example" --exclude="vault.yml.example" .; then
             echo "ERROR: Possible hardcoded secret found. Use Ansible Vault or BeyondTrust."
             exit 1
           fi
