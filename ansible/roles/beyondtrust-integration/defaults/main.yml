@@ -1,1 +1,28 @@
---- # beyondtrust-integration defaults
+---
+# beyondtrust-integration defaults
+
+# Directory on the target VM where the BT helper script is deployed
+bt_script_dir: /opt/oracle/bt
+
+# Runtime wallet directory — pre-populated by ops before first WLS startup;
+# NOT deployed by Ansible (contains BT_CLIENT_ID / BT_CLIENT_SECRET)
+bt_wallet_dir: /home/oracle/.bt_wallet
+
+# Fully qualified path to the deployed credential retrieval helper
+bt_get_credential: "{{ bt_script_dir }}/get-credential.sh"
+
+# Base directory under which per-domain bin/ directories live
+bt_wls_startup_dir: "{{ oracle_base }}/config"
+
+# BeyondTrust API base URL — override in host_vars or group_vars per environment.
+# Falls back to the global bt_api_base_url from group_vars/all/main.yml when blank.
+bt_api_base_url: ""
+
+# List of WLS domains for which bt-startup.sh should be deployed.
+# Each element is a dict with keys:
+#   domain_home  — absolute path to WLS domain directory
+#   admin_url    — T3 URL of the Admin Server (e.g. t3://host:8101)
+#   admin_user   — WLS admin username
+#   system_name  — BeyondTrust Managed System name for this VM/domain
+# Default is empty; groups override via group_vars.
+bt_wls_domains: []

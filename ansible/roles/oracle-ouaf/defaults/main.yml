@@ -1,1 +1,6 @@
---- # oracle-ouaf defaults
+---
+# OUAF install is app-specific; splebase is set by the calling play (ccb or mdm).
+# Set app_splebase in host_vars or as an extra var when invoking this role.
+app_splebase: "{{ oracle_base }}/{{ app | default('ccb') }}"
+ouaf_install_dir: "{{ oracle_stage }}/ouaf"
+ouaf_install_log: "{{ oracle_logs }}/ouaf-install.log"

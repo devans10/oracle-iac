@@ -1,1 +1,61 @@
---- # oracle-rac-client tasks
+---
+# oracle-rac-client — writes tnsnames.ora and sqlnet.ora for all three RAC clusters.
+# Idempotent template writes; safe to run on any app VM regardless of role.
+
+- name: Ensure TNS_ADMIN directory exists
+  ansible.builtin.file:
+    path: "{{ tns_admin }}"
+    state: directory
+    owner: "{{ oracle_user }}"
+    group: "{{ oracle_group }}"
+    mode: "0755"
+  become: true
+  tags: [configure]
+
+- name: Deploy tnsnames.ora
+  ansible.builtin.template:
+    src: tnsnames.ora.j2
+    dest: "{{ tns_admin }}/tnsnames.ora"
+    owner: "{{ oracle_user }}"
+    group: "{{ oracle_group }}"
+    mode: "0644"
+  become: true
+  become_user: "{{ oracle_user }}"
+  tags: [configure]
+
+- name: Deploy sqlnet.ora
+  ansible.builtin.template:
+    src: sqlnet.ora.j2
+    dest: "{{ tns_admin }}/sqlnet.ora"
+    owner: "{{ oracle_user }}"
+    group: "{{ oracle_group }}"
+    mode: "0644"
+  become: true
+  become_user: "{{ oracle_user }}"
+  tags: [configure]
+
+- name: Set TNS_ADMIN in oracle user profile
+  ansible.builtin.lineinfile:
+    path: "/home/{{ oracle_user }}/.bash_profile"
+    regexp: '^export TNS_ADMIN='
+    line: "export TNS_ADMIN={{ tns_admin }}"
+    create: true
+    owner: "{{ oracle_user }}"
+    group: "{{ oracle_group }}"
+    mode: "0644"
+  become: true
+  become_user: "{{ oracle_user }}"
+  tags: [configure]
+
+- name: Set TNS_ADMIN in cissys user profile
+  ansible.builtin.lineinfile:
+    path: "/home/{{ cissys_user }}/.bash_profile"
+    regexp: '^export TNS_ADMIN='
+    line: "export TNS_ADMIN={{ tns_admin }}"
+    create: true
+    owner: "{{ cissys_user }}"
+    group: "{{ cissys_group }}"
+    mode: "0644"
+  become: true
+  become_user: "{{ cissys_user }}"
+  tags: [configure]

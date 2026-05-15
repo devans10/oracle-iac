@@ -1,1 +1,62 @@
---- # nfs-server tasks
+---
+- name: Install nfs-utils package
+  tags: install
+  become: true
+  ansible.builtin.dnf:
+    name: nfs-utils
+    state: present
+
+- name: Create NFS export directories
+  tags: configure
+  become: true
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: oracle
+    group: oinstall
+    mode: "0755"
+  loop: "{{ nfs_export_dirs }}"
+  loop_control:
+    label: "{{ item.path }}"
+
+- name: Deploy /etc/exports from template
+  tags: configure
+  become: true
+  ansible.builtin.template:
+    src: exports.j2
+    dest: /etc/exports
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload NFS exports
+
+- name: Enable and start nfs-server service
+  tags: configure
+  become: true
+  ansible.builtin.systemd:
+    name: "{{ nfs_service }}"
+    enabled: true
+    state: started
+
+- name: Enable and start rpcbind service
+  tags: configure
+  become: true
+  ansible.builtin.systemd:
+    name: rpcbind
+    enabled: true
+    state: started
+
+- name: Verify exports are active
+  tags: validate
+  become: true
+  ansible.builtin.command:
+    cmd: exportfs -v
+  register: exports_result
+  changed_when: false
+  failed_when: false
+
+- name: Show exported paths
+  tags: validate
+  ansible.builtin.debug:
+    msg: "{{ exports_result.stdout_lines }}"
+  when: exports_result is defined and exports_result.rc == 0

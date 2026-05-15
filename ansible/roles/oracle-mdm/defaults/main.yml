@@ -1,1 +1,4 @@
---- # oracle-mdm defaults
+---
+mdm_splebase: "{{ oracle_base }}/mdm"
+mdm_install_dir: "{{ oracle_stage }}/mdm"
+mdm_install_log: "{{ oracle_logs }}/mdm-install.log"

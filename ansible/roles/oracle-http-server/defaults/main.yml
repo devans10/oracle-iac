@@ -1,1 +1,6 @@
---- # oracle-http-server defaults
+---
+ohs_install_dir: "{{ oracle_stage }}/ohs"
+ohs_instance_home: "{{ oracle_config }}/ohs_instance1"
+ohs_conf_dir: "{{ ohs_instance_home }}/config/OHS/ohs1"
+ohs_log_dir: "{{ oracle_logs }}/ohs"
+ohs_service_name: oracle-ohs

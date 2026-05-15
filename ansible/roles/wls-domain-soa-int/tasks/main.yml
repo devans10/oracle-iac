@@ -1,1 +1,76 @@
---- # wls-domain-soa-int tasks
+---
+# wls-domain-soa-{{ soa_domain_name }} — creates this SOA domain using WLST offline.
+# run_once ensures creation happens on the first host in the group only.
+# Idempotent: guarded by config.xml stat.
+
+- name: Ensure WLST script staging directory exists
+  ansible.builtin.file:
+    path: "{{ wlst_script_dir }}"
+    state: directory
+    owner: "{{ oracle_user }}"
+    group: "{{ oracle_group }}"
+    mode: "0750"
+  become: true
+  run_once: true
+  tags: [configure]
+
+- name: Check if SOA domain already exists
+  ansible.builtin.stat:
+    path: "{{ soa_domain_home }}/config/config.xml"
+  register: soa_domain_exists
+  run_once: true
+  tags: [configure]
+
+- name: Generate SOA domain WLST script
+  ansible.builtin.template:
+    src: soa-domain.py.j2
+    dest: "{{ soa_domain_script }}"
+    owner: "{{ oracle_user }}"
+    group: "{{ oracle_group }}"
+    mode: "0640"
+  become: true
+  become_user: "{{ oracle_user }}"
+  when: not soa_domain_exists.stat.exists
+  run_once: true
+  tags: [configure]
+
+- name: Create SOA WLS domain
+  ansible.builtin.command:
+    cmd: "{{ soa_home }}/oracle_common/common/bin/wlst.sh {{ soa_domain_script }}"
+    creates: "{{ soa_domain_home }}/config/config.xml"
+  become: true
+  become_user: "{{ oracle_user }}"
+  environment:
+    JAVA_HOME: "{{ java_home }}"
+    MW_HOME: "{{ mw_home }}"
+  register: soa_domain_result
+  changed_when: soa_domain_result.rc == 0
+  failed_when: soa_domain_result.rc not in [0]
+  when: not soa_domain_exists.stat.exists
+  run_once: true
+  tags: [configure]
+
+- name: Verify SOA domain config.xml exists
+  ansible.builtin.stat:
+    path: "{{ soa_domain_home }}/config/config.xml"
+  register: soa_domain_verify
+  failed_when: not soa_domain_verify.stat.exists
+  changed_when: false
+  run_once: true
+  tags: [validate]
+
+- name: Pack SOA domain for managed VMs
+  ansible.builtin.command:
+    cmd: >
+      {{ soa_home }}/oracle_common/common/bin/pack.sh
+      -domain={{ soa_domain_home }}
+      -template={{ wlst_script_dir }}/{{ soa_domain_name }}_template.jar
+      -template_name="{{ soa_domain_name }} Domain"
+      -managed=true
+    creates: "{{ wlst_script_dir }}/{{ soa_domain_name }}_template.jar"
+  become: true
+  become_user: "{{ oracle_user }}"
+  environment:
+    JAVA_HOME: "{{ java_home }}"
+  run_once: true
+  tags: [configure]

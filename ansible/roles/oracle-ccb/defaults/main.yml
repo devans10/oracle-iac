@@ -1,1 +1,4 @@
---- # oracle-ccb defaults
+---
+ccb_splebase: "{{ oracle_base }}/ccb"
+ccb_install_dir: "{{ oracle_stage }}/ccb"
+ccb_install_log: "{{ oracle_logs }}/ccb-install.log"

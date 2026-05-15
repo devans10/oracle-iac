@@ -73,6 +73,11 @@ mdm_db_scan:        "mdm-scan.company.internal"
 mdm_db_service:     "MDM_ONLINE"
 mdm_db_service_batch: "MDM_IMD"
 soa_db_scan:        "soa-scan.company.internal"
+soa_db_service_int: SOA_INT
+soa_db_service_if:  SOA_IF
+soa_db_service_web: SOA_WEB
+soa_db_service_sgg: SOA_SGG
+rac_listener_port:  1521
 jdbc_min_pool:      10
 jdbc_max_pool_web:  100
 jdbc_max_pool_iws:  75

@@ -1,0 +1,8 @@
+# /etc/profile.d/bt-env.sh
+# Managed by Ansible (beyondtrust-integration role) — do not edit manually.
+# Sets the BeyondTrust PasswordSafe API base URL for all login shells.
+{% if bt_api_base_url %}
+export BT_API_BASE_URL="{{ bt_api_base_url }}"
+{% else %}
+# bt_api_base_url not set for this host — inheriting from environment or ~/.bt_wallet/credentials
+{% endif %}

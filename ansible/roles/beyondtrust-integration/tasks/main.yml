@@ -1,1 +1,78 @@
---- # beyondtrust-integration tasks
+---
+# beyondtrust-integration/tasks/main.yml
+# Deploys the BeyondTrust credential helper and per-domain WLS startup scripts
+# that inject credentials at WLS startup time via WLST.
+# Passwords are NEVER written to files — they are retrieved at runtime.
+
+- name: "BT | Create BeyondTrust script directory {{ bt_script_dir }}"
+  ansible.builtin.file:
+    path: "{{ bt_script_dir }}"
+    state: directory
+    owner: "{{ oracle_user }}"
+    group: "{{ oracle_group }}"
+    mode: "0750"
+  tags: configure
+
+- name: "BT | Deploy get-credential.sh helper to {{ bt_get_credential }}"
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../../scripts/beyondtrust/get-credential.sh"
+    dest: "{{ bt_get_credential }}"
+    owner: "{{ oracle_user }}"
+    group: "{{ oracle_group }}"
+    mode: "0750"
+  tags: configure
+
+- name: "BT | Create BeyondTrust wallet directory {{ bt_wallet_dir }}"
+  ansible.builtin.file:
+    path: "{{ bt_wallet_dir }}"
+    state: directory
+    owner: "{{ oracle_user }}"
+    group: "{{ oracle_group }}"
+    mode: "0700"
+  tags: configure
+
+- name: "BT | Deploy /etc/profile.d/bt-env.sh with BT_API_BASE_URL"
+  ansible.builtin.template:
+    src: bt-env.sh.j2
+    dest: /etc/profile.d/bt-env.sh
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  tags: configure
+
+- name: "BT | Ensure bin/ directory exists for each WLS domain"
+  ansible.builtin.file:
+    path: "{{ item.domain_home }}/bin"
+    state: directory
+    owner: "{{ oracle_user }}"
+    group: "{{ oracle_group }}"
+    mode: "0750"
+  loop: "{{ bt_wls_domains }}"
+  loop_control:
+    label: "{{ item.domain_home }}"
+  when: bt_wls_domains is defined and bt_wls_domains | length > 0
+  tags: configure
+
+- name: "BT | Deploy wls bt-startup.sh for each WLS domain"
+  ansible.builtin.template:
+    src: wls-bt-startup.sh.j2
+    dest: "{{ item.domain_home }}/bin/bt-startup.sh"
+    owner: "{{ oracle_user }}"
+    group: "{{ oracle_group }}"
+    mode: "0750"
+  become: true
+  become_user: "{{ oracle_user }}"
+  loop: "{{ bt_wls_domains }}"
+  loop_control:
+    label: "{{ item.domain_home }}"
+  when: bt_wls_domains is defined and bt_wls_domains | length > 0
+  tags: configure
+
+- name: "BT | Verify get-credential.sh is present on target"
+  ansible.builtin.stat:
+    path: "{{ bt_get_credential }}"
+  register: _bt_script_stat
+  changed_when: false
+  failed_when: not _bt_script_stat.stat.exists
+  tags: validate

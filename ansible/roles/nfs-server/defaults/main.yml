@@ -1,1 +1,13 @@
---- # nfs-server defaults
+---
+nfs_export_dirs:
+  - path: /exports/batch-output
+    options: "rw,sync,no_root_squash,no_subtree_check"
+  - path: /exports/imd-ingest
+    options: "rw,sync,no_root_squash,no_subtree_check"
+  - path: /exports/soa-files
+    options: "rw,sync,no_root_squash,no_subtree_check"
+
+# Subnet of app VMs allowed to mount — override in group_vars/nfs_servers
+nfs_allowed_subnet: "10.0.0.0/8"
+
+nfs_service: nfs-server

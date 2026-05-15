@@ -1,0 +1,121 @@
+# configure-saml.py.j2
+# Managed by Ansible (entra-id-saml role) — do not edit manually.
+# WLST online script: configures Entra ID SAML 2.0 Identity Asserter in the
+# WLS default security realm for {{ domain_name }}.
+# Credentials are consumed from environment variables — never hardcoded.
+
+import os
+import sys
+
+admin_url      = 't3://{{ admin_host }}:{{ admin_port }}'
+admin_user     = os.environ.get('WLS_ADMIN_USER', '{{ admin_user }}')
+admin_password = os.environ.get('WLS_ADMIN_PASSWORD')
+
+if not admin_password:
+    print('ERROR: WLS_ADMIN_PASSWORD environment variable is not set.')
+    sys.exit(1)
+
+domain_name             = '{{ domain_name }}'
+realm_name              = 'myrealm'
+asserter_name           = 'EntraIDSAMLAsserter'
+sp_entity_id            = '{{ saml_sp_entity_id }}'
+idp_entity_id           = '{{ saml_idp_entity_id }}'
+assertion_consumer_url  = '{{ saml_assertion_consumer_url }}'
+cookie_path             = '{{ saml_cookie_path }}'
+idp_metadata_path       = '{{ saml_metadata_dest }}'
+
+print('Connecting to Admin Server at %s ...' % admin_url)
+connect(admin_user, admin_password, admin_url)
+
+edit()
+startEdit()
+
+try:
+    realm_mbean = cmo.getSecurityConfiguration().getDefaultRealm()
+
+    # ----------------------------------------------------------------
+    # Check if the SAML Identity Asserter already exists
+    # ----------------------------------------------------------------
+    existing_providers = realm_mbean.getAuthenticationProviders()
+    existing_names = [p.getName() for p in existing_providers]
+
+    if asserter_name in existing_names:
+        print('SAML already configured — skipping')
+        cancelEdit('y')
+        disconnect()
+        exit()
+
+    # ----------------------------------------------------------------
+    # Create SAMLIdentityAsserterV2 provider
+    # ----------------------------------------------------------------
+    print('Creating SAMLIdentityAsserterV2 provider: %s' % asserter_name)
+    cd('/SecurityConfiguration/%s/Realms/%s' % (domain_name, realm_name))
+    cmo.createAuthenticationProvider(asserter_name,
+                                     'weblogic.security.providers.saml.SAMLIdentityAsserterV2')
+
+    # Set control flag to SUFFICIENT so existing providers still work
+    cd('/SecurityConfiguration/%s/Realms/%s/AuthenticationProviders/%s'
+       % (domain_name, realm_name, asserter_name))
+    cmo.setControlFlag('SUFFICIENT')
+
+    # ----------------------------------------------------------------
+    # Re-order providers so the SAML asserter runs first
+    # ----------------------------------------------------------------
+    cd('/SecurityConfiguration/%s/Realms/%s' % (domain_name, realm_name))
+    all_providers = list(realm_mbean.getAuthenticationProviders())
+    # Move asserter to position 0
+    new_asserter = [p for p in all_providers if p.getName() == asserter_name]
+    remaining    = [p for p in all_providers if p.getName() != asserter_name]
+    realm_mbean.setAuthenticationProviders(new_asserter + remaining)
+
+    # ----------------------------------------------------------------
+    # Configure the SP site (this domain as Service Provider)
+    # ----------------------------------------------------------------
+    print('Configuring SAML SP site for entity ID: %s' % sp_entity_id)
+    cd('/SecurityConfiguration/%s/Realms/%s/AuthenticationProviders/%s'
+       % (domain_name, realm_name, asserter_name))
+
+    # Create or locate the SP partner site
+    cmo.createSAML2CredentialMapper(sp_entity_id)
+    spSite = cmo.lookupSAML2CredentialMapper(sp_entity_id)
+    spSite.setEnabled(true)
+    spSite.setACSURL(assertion_consumer_url)
+    spSite.setACSURLDefault(assertion_consumer_url)
+
+    # Set the cookie path required for cross-context-path SSO (ADR-003)
+    cmo.setCookiePath(cookie_path)
+
+    # ----------------------------------------------------------------
+    # Register the Entra ID IdP partner from the cleaned metadata XML
+    # ----------------------------------------------------------------
+    print('Registering IdP partner from metadata: %s' % idp_metadata_path)
+    idpPartnerMBean = cmo.newIdPPartner()
+    idpPartnerMBean.setEnabled(true)
+    idpPartnerMBean.setDescription('Entra ID IdP for ' + domain_name)
+    idpPartnerMBean.setEntityID(idp_entity_id)
+
+    # Load the metadata file
+    metadataFile = open(idp_metadata_path, 'r')
+    metadataXML  = metadataFile.read()
+    metadataFile.close()
+    idpPartnerMBean.setMetadata(metadataXML)
+
+    cmo.addIdPPartner(idpPartnerMBean)
+
+    # ----------------------------------------------------------------
+    # Save and activate
+    # ----------------------------------------------------------------
+    print('Saving and activating changes ...')
+    save()
+    activate(block='true')
+
+    print('SAML Identity Asserter configured')
+
+except Exception as e:
+    print('ERROR during SAML configuration: %s' % str(e))
+    cancelEdit('y')
+    disconnect()
+    raise
+
+disconnect()
+exit()

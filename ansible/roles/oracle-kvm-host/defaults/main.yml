@@ -1,1 +1,21 @@
---- # oracle-kvm-host defaults
+---
+kvm_packages:
+  - qemu-kvm
+  - libvirt
+  - libvirt-client
+  - virt-install
+  - bridge-utils
+
+kvm_hugepages_enabled: true
+kvm_hugepage_size_mb: 2
+
+# Number of 2MB huge pages to allocate — override per host in host_vars
+kvm_nr_hugepages: 262144 # 512 GB at 2MB pages
+
+kvm_service: libvirtd
+
+# SR-IOV NIC for VM networking — override in host_vars
+kvm_sriov_nic: ""
+
+# CPU performance governor
+kvm_cpu_governor: performance

@@ -1,1 +1,2 @@
---- # beyondtrust-integration vars
+---
+# No role-internal vars required — all tunables are in defaults/main.yml.

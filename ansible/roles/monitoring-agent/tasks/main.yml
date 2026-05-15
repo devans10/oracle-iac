@@ -1,1 +1,79 @@
---- # monitoring-agent tasks
+---
+# monitoring-agent/tasks/main.yml
+# Installs and configures prometheus-node-exporter on every Oracle Linux VM.
+
+- name: Check if node_exporter binary is already installed
+  tags: install
+  ansible.builtin.stat:
+    path: /usr/bin/node_exporter
+  register: node_exporter_installed
+
+- name: Install node_exporter RPM from local media repository
+  tags: install
+  when: not node_exporter_installed.stat.exists
+  become: true
+  ansible.builtin.dnf:
+    name: "{{ node_exporter_rpm }}"
+    state: present
+    disable_gpg_check: true
+
+- name: Create textfile collector directory
+  tags: configure
+  become: true
+  ansible.builtin.file:
+    path: "{{ node_exporter_textfile_dir }}"
+    state: directory
+    owner: "{{ node_exporter_user }}"
+    group: "{{ node_exporter_user }}"
+    mode: "0755"
+
+- name: Create systemd drop-in directory for node_exporter service override
+  tags: configure
+  become: true
+  ansible.builtin.file:
+    path: /etc/systemd/system/prometheus-node-exporter.service.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Deploy systemd service override for node_exporter arguments
+  tags: configure
+  become: true
+  ansible.builtin.template:
+    src: node-exporter-override.conf.j2
+    dest: /etc/systemd/system/prometheus-node-exporter.service.d/override.conf
+    owner: root
+    group: root
+    mode: "0644"
+    validate: /usr/bin/true %s
+  notify: Reload systemd
+
+- name: Enable and start node_exporter service
+  tags: configure
+  become: true
+  ansible.builtin.systemd:
+    name: "{{ node_exporter_service }}"
+    enabled: true
+    state: started
+    daemon_reload: true
+
+- name: Verify node_exporter is listening on configured port
+  tags: validate
+  ansible.builtin.wait_for:
+    host: "{{ ansible_host | default('127.0.0.1') }}"
+    port: "{{ node_exporter_port }}"
+    timeout: 30
+
+- name: Gather service facts for node_exporter validation
+  tags: validate
+  ansible.builtin.service_facts:
+
+- name: Verify node_exporter service is active
+  tags: validate
+  ansible.builtin.assert:
+    that:
+      - ansible_facts.services[node_exporter_service ~ '.service'] is defined
+      - ansible_facts.services[node_exporter_service ~ '.service'].state == 'running'
+    fail_msg: "Service {{ node_exporter_service }} is not running"
+    success_msg: "Service {{ node_exporter_service }} is running"

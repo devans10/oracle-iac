@@ -1,1 +1,112 @@
---- # oracle-http-server tasks
+---
+# oracle-http-server — installs and configures OHS 12.2.1.4 with mod_wl_ohs proxy.
+# NOTE: Batch clusters are NOT proxied through OHS (ADR-002).
+
+- name: Ensure OHS stage and log directories exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ oracle_user }}"
+    group: "{{ oracle_group }}"
+    mode: "0755"
+  become: true
+  loop:
+    - "{{ ohs_install_dir }}"
+    - "{{ ohs_log_dir }}"
+  loop_control:
+    label: "{{ item }}"
+  tags: [install]
+
+- name: Check if OHS is already installed
+  ansible.builtin.stat:
+    path: "{{ ohs_home }}/ohs/bin/apachectl"
+  register: ohs_installed
+  tags: [install]
+
+- name: Install Oracle HTTP Server
+  when: not ohs_installed.stat.exists
+  tags: [install]
+  block:
+    - name: Render OHS silent install response file
+      ansible.builtin.template:
+        src: ohs-install.rsp.j2
+        dest: "{{ ohs_install_dir }}/ohs-install.rsp"
+        owner: "{{ oracle_user }}"
+        group: "{{ oracle_group }}"
+        mode: "0640"
+      become: true
+      become_user: "{{ oracle_user }}"
+
+    - name: Run OHS silent installer
+      ansible.builtin.command:
+        cmd: >
+          {{ java_home }}/bin/java
+          -jar {{ ohs_installer }}
+          -silent
+          -responseFile {{ ohs_install_dir }}/ohs-install.rsp
+          -jreLoc {{ java_home }}
+        creates: "{{ ohs_home }}/ohs/bin/apachectl"
+      become: true
+      become_user: "{{ oracle_user }}"
+      environment:
+        JAVA_HOME: "{{ java_home }}"
+      register: ohs_install_result
+      changed_when: ohs_install_result.rc == 0
+      failed_when: ohs_install_result.rc not in [0]
+
+  rescue:
+    - name: Show installer log on failure
+      ansible.builtin.command:
+        cmd: 'find {{ ohs_install_dir }} -name "*.log" -exec tail -50 {} \;'
+      changed_when: false
+      failed_when: true
+
+- name: Create OHS instance directory
+  ansible.builtin.file:
+    path: "{{ ohs_conf_dir }}"
+    state: directory
+    owner: "{{ oracle_user }}"
+    group: "{{ oracle_group }}"
+    mode: "0755"
+  become: true
+  tags: [configure]
+
+- name: Deploy mod_wl_ohs proxy configuration
+  ansible.builtin.template:
+    src: mod_wl_ohs.conf.j2
+    dest: "{{ ohs_conf_dir }}/mod_wl_ohs.conf"
+    owner: "{{ oracle_user }}"
+    group: "{{ oracle_group }}"
+    mode: "0640"
+    validate: "{{ ohs_home }}/ohs/bin/apachectl -t -f %s 2>&1 || true"
+  become: true
+  become_user: "{{ oracle_user }}"
+  notify: Restart OHS
+  tags: [configure]
+
+- name: Install OHS systemd unit
+  ansible.builtin.template:
+    src: oracle-ohs.service.j2
+    dest: "/etc/systemd/system/{{ ohs_service_name }}.service"
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  notify: Reload systemd
+  tags: [configure]
+
+- name: Enable and start OHS service
+  ansible.builtin.systemd:
+    name: "{{ ohs_service_name }}"
+    enabled: true
+    state: started
+    daemon_reload: true
+  become: true
+  tags: [configure]
+
+- name: Verify OHS is listening on port {{ ohs_listen_port }}
+  ansible.builtin.wait_for:
+    host: "{{ ansible_default_ipv4.address }}"
+    port: "{{ ohs_listen_port }}"
+    timeout: 60
+  tags: [validate]

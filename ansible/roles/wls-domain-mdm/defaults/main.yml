@@ -1,1 +1,13 @@
---- # wls-domain-mdm defaults
+---
+mdm_domain_name: MDM_domain
+mdm_domain_home: "{{ oracle_config }}/MDM_domain"
+mdm_admin_host: "{{ hostvars[groups['mdm_admin'][0]]['ansible_host'] | default(groups['mdm_admin'][0]) }}"
+mdm_admin_port: 8001
+mdm_admin_user: weblogic
+
+mdm_web_port: 8010
+mdm_iws_port: 8020
+mdm_batch_port: 8030
+
+wlst_script_dir: "{{ oracle_stage }}/wlst"
+mdm_domain_script: "{{ wlst_script_dir }}/create-mdm-domain.py"

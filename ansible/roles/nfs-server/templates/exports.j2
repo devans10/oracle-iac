@@ -1,0 +1,4 @@
+# /etc/exports — Managed by Ansible (nfs-server role) — do not edit manually
+{% for export in nfs_export_dirs %}
+{{ export.path }}  {{ nfs_allowed_subnet }}({{ export.options }})
+{% endfor %}

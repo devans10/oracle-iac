@@ -1,1 +1,85 @@
---- # oracle-kvm-host tasks
+---
+- name: Install KVM packages
+  tags: install
+  become: true
+  ansible.builtin.dnf:
+    name: "{{ kvm_packages }}"
+    state: present
+
+- name: Enable and start libvirtd service
+  tags: configure
+  become: true
+  ansible.builtin.systemd:
+    name: "{{ kvm_service }}"
+    enabled: true
+    state: started
+
+- name: Deploy KVM performance sysctl configuration
+  tags: configure
+  become: true
+  ansible.builtin.template:
+    src: kvm-sysctl.conf.j2
+    dest: /etc/sysctl.d/99-kvm.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Apply sysctl
+
+- name: Configure huge pages allocation
+  tags: configure
+  become: true
+  ansible.posix.sysctl:
+    name: vm.nr_hugepages
+    value: "{{ kvm_nr_hugepages }}"
+    sysctl_file: /etc/sysctl.d/99-kvm.conf
+    reload: true
+  when: kvm_hugepages_enabled
+
+- name: Set CPU governor to performance for all cores
+  tags: configure
+  become: true
+  ansible.builtin.command:
+    cmd: "cpupower frequency-set -g {{ kvm_cpu_governor }}"
+  changed_when: false
+  failed_when: false
+  when: kvm_cpu_governor != ""
+
+- name: Enable SR-IOV virtual functions on NIC
+  tags: configure
+  become: true
+  ansible.builtin.shell:
+    cmd: "echo 8 > /sys/class/net/{{ kvm_sriov_nic }}/device/sriov_numvfs"
+  changed_when: true
+  failed_when: false
+  when: kvm_sriov_nic != ""
+
+- name: Verify KVM kernel module is loaded
+  tags: validate
+  become: true
+  ansible.builtin.command:
+    cmd: lsmod
+  register: result
+  changed_when: false
+  failed_when: result.rc != 0
+
+- name: Assert KVM module is present in lsmod output
+  tags: validate
+  ansible.builtin.assert:
+    that: "'kvm' in result.stdout"
+    fail_msg: "KVM kernel module is not loaded on this host"
+    success_msg: "KVM kernel module is loaded"
+
+- name: Show huge pages allocation from /proc/meminfo
+  tags: validate
+  become: true
+  ansible.builtin.command:
+    cmd: grep -i huge /proc/meminfo
+  register: hugepages_info
+  changed_when: false
+  failed_when: false
+
+- name: Display huge pages allocation
+  tags: validate
+  ansible.builtin.debug:
+    msg: "{{ hugepages_info.stdout_lines }}"
+  when: hugepages_info.stdout_lines is defined

@@ -1,0 +1,10 @@
+# Managed by Ansible (monitoring-agent role) — do not edit manually.
+[Service]
+ExecStart=
+ExecStart=/usr/bin/node_exporter \
+  --web.listen-address=:{{ node_exporter_port }} \
+  --collector.textfile.directory={{ node_exporter_textfile_dir }} \
+{% if node_exporter_extra_args %}
+  {{ node_exporter_extra_args }} \
+{% endif %}
+  --collector.systemd

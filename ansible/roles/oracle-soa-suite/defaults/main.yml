@@ -1,1 +1,6 @@
---- # oracle-soa-suite defaults
+---
+soa_install_dir: "{{ oracle_stage }}/soa"
+soa_install_log: "{{ oracle_logs }}/soa-install.log"
+ora_inst_loc: /etc/oraInst.loc
+ora_inventory_dir: "{{ oracle_products }}/oraInventory"
+soa_install_rsp: "{{ soa_install_dir }}/soa-install.rsp"

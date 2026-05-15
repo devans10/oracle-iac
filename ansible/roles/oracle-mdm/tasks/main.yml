@@ -1,1 +1,82 @@
---- # oracle-mdm tasks
+---
+# oracle-mdm — installs MDM 25.10 application on top of OUAF framework.
+# Prerequisite: oracle-ouaf role must have completed for mdm splebase.
+# Idempotent: guarded by stat check on MDM version marker file.
+
+- name: Ensure MDM stage directory exists
+  ansible.builtin.file:
+    path: "{{ mdm_install_dir }}"
+    state: directory
+    owner: "{{ cissys_user }}"
+    group: "{{ cissys_group }}"
+    mode: "0755"
+  become: true
+  tags: [install]
+
+- name: Check if MDM is already installed
+  ansible.builtin.stat:
+    path: "{{ mdm_splebase }}/etc/PRODUCT.RELEASE"
+  register: mdm_installed
+  tags: [install]
+
+- name: Install MDM application
+  when: not mdm_installed.stat.exists
+  tags: [install]
+  block:
+    - name: Run MDM silent installer
+      ansible.builtin.command:
+        cmd: >
+          {{ java_home }}/bin/java
+          -jar {{ mdm_installer }}
+          -f {{ mdm_install_dir }}/install.properties
+          -i SILENT
+        creates: "{{ mdm_splebase }}/etc/PRODUCT.RELEASE"
+      become: true
+      become_user: "{{ cissys_user }}"
+      environment:
+        JAVA_HOME: "{{ java_home }}"
+        SPLEBASE: "{{ mdm_splebase }}"
+      register: mdm_install_result
+      changed_when: mdm_install_result.rc == 0
+      failed_when: mdm_install_result.rc not in [0]
+
+    - name: Run OUAF initialSetup for MDM
+      ansible.builtin.command:
+        cmd: "{{ mdm_splebase }}/bin/initialSetup.sh -t"
+        chdir: "{{ mdm_splebase }}"
+      become: true
+      become_user: "{{ cissys_user }}"
+      environment:
+        JAVA_HOME: "{{ java_home }}"
+        SPLEBASE: "{{ mdm_splebase }}"
+      register: mdm_init_result
+      changed_when: mdm_init_result.rc == 0
+      failed_when: mdm_init_result.rc not in [0]
+
+  rescue:
+    - name: Show MDM install log on failure
+      ansible.builtin.command:
+        cmd: tail -100 {{ mdm_install_log }}
+      changed_when: false
+      failed_when: true
+
+- name: Verify MDM PRODUCT.RELEASE exists
+  ansible.builtin.stat:
+    path: "{{ mdm_splebase }}/etc/PRODUCT.RELEASE"
+  register: mdm_verify
+  failed_when: not mdm_verify.stat.exists
+  changed_when: false
+  tags: [validate]
+
+- name: Confirm installed MDM version
+  ansible.builtin.command:
+    cmd: grep -i 'version' {{ mdm_splebase }}/etc/PRODUCT.RELEASE
+  register: mdm_version_out
+  changed_when: false
+  failed_when: false
+  tags: [validate]
+
+- name: Show MDM version
+  ansible.builtin.debug:
+    msg: "{{ mdm_version_out.stdout }}"
+  tags: [validate]

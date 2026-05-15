@@ -1,1 +1,11 @@
---- # oracle-data-guard defaults
+---
+dg_config_name: "{{ ccb_db_scan | regex_replace('\\..*$', '') }}_DG"
+dg_primary_db: CCB
+dg_standby_db: CCB_DR
+dg_observer_enabled: true
+dgmgrl_bin: "{{ oracle_base }}/products/db_client/bin/dgmgrl"
+tns_admin: "{{ oracle_base }}/config/network/admin"
+dg_standby_scan:
+  ccb: "ccb-dr-scan.company.internal"
+  mdm: "mdm-dr-scan.company.internal"
+  soa: "soa-dr-scan.company.internal"

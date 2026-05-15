@@ -1,1 +1,56 @@
---- # nfs-client tasks
+---
+# nfs-client — mounts shared NFS directories.
+# Called by the nfs.yml playbook only when enable_nfs is true.
+
+- name: Ensure nfs-utils is installed
+  ansible.builtin.package:
+    name: nfs-utils
+    state: present
+  become: true
+  tags: [install]
+
+- name: Create NFS mount point directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ oracle_user }}"
+    group: "{{ oracle_group }}"
+    mode: "0775"
+  become: true
+  loop:
+    - "{{ nfs_mount_batch }}"
+    - "{{ nfs_mount_imd }}"
+    - "{{ nfs_mount_soa }}"
+  loop_control:
+    label: "{{ item }}"
+  tags: [configure]
+
+- name: Mount NFS batch output share
+  ansible.posix.mount:
+    path: "{{ nfs_mount_batch }}"
+    src: "{{ nfs_batch_output }}"
+    fstype: nfs
+    opts: "{{ nfs_mount_options }}"
+    state: mounted
+  become: true
+  tags: [configure]
+
+- name: Mount NFS IMD ingest share
+  ansible.posix.mount:
+    path: "{{ nfs_mount_imd }}"
+    src: "{{ nfs_imd_ingest }}"
+    fstype: nfs
+    opts: "{{ nfs_mount_options }}"
+    state: mounted
+  become: true
+  tags: [configure]
+
+- name: Mount NFS SOA files share
+  ansible.posix.mount:
+    path: "{{ nfs_mount_soa }}"
+    src: "{{ nfs_soa_files }}"
+    fstype: nfs
+    opts: "{{ nfs_mount_options }}"
+    state: mounted
+  become: true
+  tags: [configure]
