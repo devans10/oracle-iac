@@ -6,9 +6,8 @@ soa_domain_home: "{{ oracle_config }}/soa_int"
 soa_ms_group: soa_int_ms
 soa_wsm_group: soa_int_wsm
 
-# WLS Admin Server — first host in soa_int group is the Admin Server VM.
-# The inventory has no soa_int_admin subgroup; all SOA INT hosts share one flat group.
-admin_host: "{{ hostvars[groups['soa_int'][0]]['ansible_host'] | default(groups['soa_int'][0]) }}"
+# WLS Admin Server — first host in soa_int_admin group is the Admin Server VM.
+admin_host: "{{ hostvars[groups['soa_int_admin'][0]]['ansible_host'] | default(groups['soa_int_admin'][0]) }}"
 admin_port: 8101
 admin_user: weblogic
 admin_password: "{{ vault_wls_admin_password }}"

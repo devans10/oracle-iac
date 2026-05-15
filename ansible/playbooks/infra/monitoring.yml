@@ -1,0 +1,7 @@
+---
+- name: Install monitoring agent on all app VMs
+  hosts: app_servers
+  roles:
+    - role: monitoring-agent
+      when: enable_monitoring | default(true) | bool
+  tags: [monitoring]

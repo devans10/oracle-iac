@@ -4,3 +4,6 @@ ohs_instance_home: "{{ oracle_config }}/ohs_instance1"
 ohs_conf_dir: "{{ ohs_instance_home }}/config/OHS/ohs1"
 ohs_log_dir: "{{ oracle_logs }}/ohs"
 ohs_service_name: oracle-ohs
+ohs_home: "{{ oracle_products }}/ohs"
+ohs_listen_port: 80
+ohs_installer: "{{ media_base_path | default('/u01/oracle/media') }}/ohs/fmw_12.2.1.4.0_ohs.jar"

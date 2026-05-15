@@ -1,0 +1,6 @@
+---
+- name: Validate Data Guard configuration and configure DR TNS aliases
+  hosts: app_servers
+  roles:
+    - oracle-data-guard
+  tags: [dg]

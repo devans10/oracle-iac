@@ -6,8 +6,8 @@ soa_domain_home: "{{ oracle_config }}/soa_if"
 soa_ms_group: soa_if_ms
 soa_wsm_group: soa_if_wsm
 
-# WLS Admin Server — first host in soa_if group is the Admin Server VM.
-admin_host: "{{ hostvars[groups['soa_if'][0]]['ansible_host'] | default(groups['soa_if'][0]) }}"
+# WLS Admin Server — first host in soa_if_admin group is the Admin Server VM.
+admin_host: "{{ hostvars[groups['soa_if_admin'][0]]['ansible_host'] | default(groups['soa_if_admin'][0]) }}"
 admin_port: 8201
 admin_user: weblogic
 admin_password: "{{ vault_wls_admin_password }}"

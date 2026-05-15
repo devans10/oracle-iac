@@ -15,7 +15,8 @@ bt_get_credential: "{{ bt_script_dir }}/get-credential.sh"
 bt_wls_startup_dir: "{{ oracle_base }}/config"
 
 # BeyondTrust API base URL — override in host_vars or group_vars per environment.
-# Falls back to the global bt_api_base_url from group_vars/all/main.yml when blank.
+# Empty string falls back to group_vars/all value — do not set a non-empty default here.
+# Role defaults have LOWER precedence than group_vars, so group_vars/all/main.yml wins.
 bt_api_base_url: ""
 
 # List of WLS domains for which bt-startup.sh should be deployed.

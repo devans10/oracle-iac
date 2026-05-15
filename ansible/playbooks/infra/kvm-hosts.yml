@@ -1,0 +1,6 @@
+---
+- name: Configure KVM hypervisor hosts
+  hosts: kvm_hosts
+  roles:
+    - oracle-kvm-host
+  tags: [kvm]

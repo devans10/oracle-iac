@@ -1,8 +1,10 @@
 ---
-dg_config_name: "{{ ccb_db_scan | regex_replace('\\..*$', '') }}_DG"
+dg_config_name: ""  # must be set per-environment in group_vars or host_vars
 dg_primary_db: CCB
 dg_standby_db: CCB_DR
 dg_observer_enabled: true
+dg_observer_host: "dg-observer.company.internal"
+dg_protection_mode: MAXAVAILABILITY
 dgmgrl_bin: "{{ oracle_base }}/products/db_client/bin/dgmgrl"
 tns_admin: "{{ oracle_base }}/config/network/admin"
 dg_standby_scan:

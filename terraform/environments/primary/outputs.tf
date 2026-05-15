@@ -1,16 +1,25 @@
 output "ccb_vm_ips" {
-  description = "CC&B VM names and IP addresses"
-  value       = { for k, v in module.ccb_vms : k => v.ip_address }
+  description = "CC&B VM names and IP addresses (across both KVM hosts)"
+  value = merge(
+    { for k, v in module.ccb_vms_host_a : k => v.ip_address },
+    { for k, v in module.ccb_vms_host_b : k => v.ip_address },
+  )
 }
 
 output "mdm_vm_ips" {
-  description = "MDM VM names and IP addresses"
-  value       = { for k, v in module.mdm_vms : k => v.ip_address }
+  description = "MDM VM names and IP addresses (across both KVM hosts)"
+  value = merge(
+    { for k, v in module.mdm_vms_host_a : k => v.ip_address },
+    { for k, v in module.mdm_vms_host_b : k => v.ip_address },
+  )
 }
 
 output "soa_vm_ips" {
-  description = "SOA Suite VM names and IP addresses"
-  value       = { for k, v in module.soa_vms : k => v.ip_address }
+  description = "SOA Suite VM names and IP addresses (across both KVM hosts)"
+  value = merge(
+    { for k, v in module.soa_vms_host_a : k => v.ip_address },
+    { for k, v in module.soa_vms_host_b : k => v.ip_address },
+  )
 }
 
 output "ohs_vm_ips" {
@@ -21,9 +30,12 @@ output "ohs_vm_ips" {
 output "all_vm_ips" {
   description = "All provisioned VMs and their IP addresses — use for Ansible inventory generation"
   value = merge(
-    { for k, v in module.ccb_vms : k => v.ip_address },
-    { for k, v in module.mdm_vms : k => v.ip_address },
-    { for k, v in module.soa_vms : k => v.ip_address },
+    { for k, v in module.ccb_vms_host_a : k => v.ip_address },
+    { for k, v in module.ccb_vms_host_b : k => v.ip_address },
+    { for k, v in module.mdm_vms_host_a : k => v.ip_address },
+    { for k, v in module.mdm_vms_host_b : k => v.ip_address },
+    { for k, v in module.soa_vms_host_a : k => v.ip_address },
+    { for k, v in module.soa_vms_host_b : k => v.ip_address },
     { for k, v in module.ohs_vms : k => v.ip_address },
   )
 }

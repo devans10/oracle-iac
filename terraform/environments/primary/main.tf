@@ -1,23 +1,3 @@
-terraform {
-  required_version = ">= 1.5"
-
-  required_providers {
-    libvirt = {
-      source  = "dmacvicar/libvirt"
-      version = "~> 0.7"
-    }
-  }
-
-  backend "http" {
-    # Configure via: terraform init -backend-config=../../backend.hcl
-  }
-}
-
-provider "libvirt" {
-  # Configure per KVM host — use for_each across KVM hosts
-  uri = var.libvirt_uri
-}
-
 locals {
   env = "primary"
 
@@ -65,11 +45,28 @@ locals {
     "ohs-vm-02" = { role = "ohs", vcpu = 4, memory_mb = 8192, kvm_host = "kvm-host-web", data_disk_gb = 150 }
     "ohs-vm-03" = { role = "ohs", vcpu = 4, memory_mb = 8192, kvm_host = "kvm-host-web", data_disk_gb = 150 }
   }
+
+  # Per-host subsets — required because providers = {} must be a static map per module block.
+  # Anti-affinity is enforced by the provider binding: -a host for -01 VMs, -b host for -02 VMs.
+  ccb_vms_host_a = { for k, v in local.ccb_vms : k => v if v.kvm_host == "kvm-host-ccb-a" }
+  ccb_vms_host_b = { for k, v in local.ccb_vms : k => v if v.kvm_host == "kvm-host-ccb-b" }
+
+  mdm_vms_host_a = { for k, v in local.mdm_vms : k => v if v.kvm_host == "kvm-host-mdm-a" }
+  mdm_vms_host_b = { for k, v in local.mdm_vms : k => v if v.kvm_host == "kvm-host-mdm-b" }
+
+  soa_vms_host_a = { for k, v in local.soa_vms : k => v if v.kvm_host == "kvm-host-soa-a" }
+  soa_vms_host_b = { for k, v in local.soa_vms : k => v if v.kvm_host == "kvm-host-soa-b" }
 }
 
-module "ccb_vms" {
-  source   = "../../modules/oracle-linux-vm"
-  for_each = local.ccb_vms
+# ---------------------------------------------------------------------------
+# CC&B VMs — split by KVM host to enforce anti-affinity via provider binding
+# ---------------------------------------------------------------------------
+
+# CCB VMs on kvm-host-ccb-a (admin-vm-01, web-vm-01, iws-vm-01, batch-vm-01)
+module "ccb_vms_host_a" {
+  source    = "../../modules/oracle-linux-vm"
+  for_each  = local.ccb_vms_host_a
+  providers = { libvirt = libvirt.ccb_a }
 
   vm_name      = each.key
   app          = "ccb"
@@ -84,9 +81,34 @@ module "ccb_vms" {
   env          = local.env
 }
 
-module "mdm_vms" {
-  source   = "../../modules/oracle-linux-vm"
-  for_each = local.mdm_vms
+# CCB VMs on kvm-host-ccb-b (web-vm-02, iws-vm-02, batch-vm-02) — anti-affinity with ccb-a VMs
+module "ccb_vms_host_b" {
+  source    = "../../modules/oracle-linux-vm"
+  for_each  = local.ccb_vms_host_b
+  providers = { libvirt = libvirt.ccb_b }
+
+  vm_name      = each.key
+  app          = "ccb"
+  role         = each.value.role
+  vcpu         = each.value.vcpu
+  memory_mb    = each.value.memory_mb
+  kvm_host     = each.value.kvm_host
+  data_disk_gb = each.value.data_disk_gb
+  base_image   = var.oracle_linux_image
+  network      = var.app_network
+  ssh_pubkey   = var.ssh_pubkey
+  env          = local.env
+}
+
+# ---------------------------------------------------------------------------
+# MDM VMs — split by KVM host to enforce anti-affinity via provider binding
+# ---------------------------------------------------------------------------
+
+# MDM VMs on kvm-host-mdm-a (admin-vm-01, web-vm-01, iws-vm-01, batch-vm-01)
+module "mdm_vms_host_a" {
+  source    = "../../modules/oracle-linux-vm"
+  for_each  = local.mdm_vms_host_a
+  providers = { libvirt = libvirt.mdm_a }
 
   vm_name      = each.key
   app          = "mdm"
@@ -101,9 +123,34 @@ module "mdm_vms" {
   env          = local.env
 }
 
-module "soa_vms" {
-  source   = "../../modules/oracle-linux-vm"
-  for_each = local.soa_vms
+# MDM VMs on kvm-host-mdm-b (web-vm-02, iws-vm-02, batch-vm-02) — anti-affinity with mdm-a VMs
+module "mdm_vms_host_b" {
+  source    = "../../modules/oracle-linux-vm"
+  for_each  = local.mdm_vms_host_b
+  providers = { libvirt = libvirt.mdm_b }
+
+  vm_name      = each.key
+  app          = "mdm"
+  role         = each.value.role
+  vcpu         = each.value.vcpu
+  memory_mb    = each.value.memory_mb
+  kvm_host     = each.value.kvm_host
+  data_disk_gb = each.value.data_disk_gb
+  base_image   = var.oracle_linux_image
+  network      = var.app_network
+  ssh_pubkey   = var.ssh_pubkey
+  env          = local.env
+}
+
+# ---------------------------------------------------------------------------
+# SOA Suite VMs — split by KVM host to enforce anti-affinity via provider binding
+# ---------------------------------------------------------------------------
+
+# SOA VMs on kvm-host-soa-a (-vm-01 and wsm VMs assigned to soa-a)
+module "soa_vms_host_a" {
+  source    = "../../modules/oracle-linux-vm"
+  for_each  = local.soa_vms_host_a
+  providers = { libvirt = libvirt.soa_a }
 
   vm_name      = each.key
   app          = "soa"
@@ -118,9 +165,33 @@ module "soa_vms" {
   env          = local.env
 }
 
+# SOA VMs on kvm-host-soa-b (-vm-02 and wsm VMs assigned to soa-b) — anti-affinity with soa-a VMs
+module "soa_vms_host_b" {
+  source    = "../../modules/oracle-linux-vm"
+  for_each  = local.soa_vms_host_b
+  providers = { libvirt = libvirt.soa_b }
+
+  vm_name      = each.key
+  app          = "soa"
+  role         = each.value.role
+  vcpu         = each.value.vcpu
+  memory_mb    = each.value.memory_mb
+  kvm_host     = each.value.kvm_host
+  data_disk_gb = each.value.data_disk_gb
+  base_image   = var.oracle_linux_image
+  network      = var.app_network
+  ssh_pubkey   = var.ssh_pubkey
+  env          = local.env
+}
+
+# ---------------------------------------------------------------------------
+# OHS VMs — all 3 nodes on kvm-host-web (dedicated OHS KVM host)
+# ---------------------------------------------------------------------------
+
 module "ohs_vms" {
-  source   = "../../modules/oracle-linux-vm"
-  for_each = local.ohs_vms
+  source    = "../../modules/oracle-linux-vm"
+  for_each  = local.ohs_vms
+  providers = { libvirt = libvirt.web }
 
   vm_name      = each.key
   app          = "ohs"

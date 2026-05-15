@@ -12,6 +12,16 @@ all:
     oracle_config: /u01/oracle/config
     oracle_logs: /u01/oracle/logs
 
+    # Oracle stage/media paths (also in group_vars/all but inventory can override)
+    oracle_stage:    /u01/oracle/stage
+    media_base_path: /u01/oracle/media
+
+    # Feature flags (production defaults; override to false in dev inventory)
+    enable_ohs:        true
+    enable_saml:       true
+    enable_nfs:        true
+    enable_monitoring: true
+
   children:
     ohs_servers:
       hosts:
@@ -106,68 +116,112 @@ all:
         wls_domain: mdm_domain
 
     soa_int:
-      hosts:
-        soa-int-vm-01.company.internal:
-          wls_ms_name: SOA-INT-MS-01
-          wls_ms_port: 8002
-        soa-int-vm-02.company.internal:
-          wls_ms_name: SOA-INT-MS-02
-          wls_ms_port: 8002
-        soa-int-wsm-vm-01.company.internal:
-          wls_ms_name: WSM-INT-MS-01
-          wls_ms_port: 8003
       vars:
         wls_domain: soa_int
-        wls_admin_port: 8001
+        wls_admin_port: 8101
         soainfra_schema_prefix: INT
+      children:
+        soa_int_ms:
+          hosts:
+            soa-int-ms-vm-01.company.internal:
+              ansible_host: 10.0.40.11
+              wls_ms_name: SOA-INT-MS-01
+              wls_ms_port: 8102
+            soa-int-ms-vm-02.company.internal:
+              ansible_host: 10.0.40.12
+              wls_ms_name: SOA-INT-MS-02
+              wls_ms_port: 8102
+        soa_int_wsm:
+          hosts:
+            soa-int-wsm-vm-01.company.internal:
+              ansible_host: 10.0.40.13
+              wls_ms_name: WSM-INT-MS-01
+              wls_ms_port: 8103
+
+    soa_int_admin:
+      hosts:
+        soa-int-ms-vm-01.company.internal:
 
     soa_if:
-      hosts:
-        soa-if-vm-01.company.internal:
-          wls_ms_name: SOA-IF-MS-01
-          wls_ms_port: 8012
-        soa-if-vm-02.company.internal:
-          wls_ms_name: SOA-IF-MS-02
-          wls_ms_port: 8012
-        soa-if-wsm-vm-01.company.internal:
-          wls_ms_name: WSM-IF-MS-01
-          wls_ms_port: 8013
       vars:
         wls_domain: soa_if
-        wls_admin_port: 8011
+        wls_admin_port: 8201
         soainfra_schema_prefix: IF
+      children:
+        soa_if_ms:
+          hosts:
+            soa-if-ms-vm-01.company.internal:
+              ansible_host: 10.0.41.11
+              wls_ms_name: SOA-IF-MS-01
+              wls_ms_port: 8202
+            soa-if-ms-vm-02.company.internal:
+              ansible_host: 10.0.41.12
+              wls_ms_name: SOA-IF-MS-02
+              wls_ms_port: 8202
+        soa_if_wsm:
+          hosts:
+            soa-if-wsm-vm-01.company.internal:
+              ansible_host: 10.0.41.13
+              wls_ms_name: WSM-IF-MS-01
+              wls_ms_port: 8203
+
+    soa_if_admin:
+      hosts:
+        soa-if-ms-vm-01.company.internal:
 
     soa_web:
-      hosts:
-        soa-web-vm-01.company.internal:
-          wls_ms_name: SOA-WEB-MS-01
-          wls_ms_port: 8022
-        soa-web-vm-02.company.internal:
-          wls_ms_name: SOA-WEB-MS-02
-          wls_ms_port: 8022
-        soa-web-wsm-vm-01.company.internal:
-          wls_ms_name: WSM-WEB-MS-01
-          wls_ms_port: 8023
       vars:
         wls_domain: soa_web
-        wls_admin_port: 8021
+        wls_admin_port: 8301
         soainfra_schema_prefix: WEB
+      children:
+        soa_web_ms:
+          hosts:
+            soa-web-ms-vm-01.company.internal:
+              ansible_host: 10.0.42.11
+              wls_ms_name: SOA-WEB-MS-01
+              wls_ms_port: 8302
+            soa-web-ms-vm-02.company.internal:
+              ansible_host: 10.0.42.12
+              wls_ms_name: SOA-WEB-MS-02
+              wls_ms_port: 8302
+        soa_web_wsm:
+          hosts:
+            soa-web-wsm-vm-01.company.internal:
+              ansible_host: 10.0.42.13
+              wls_ms_name: WSM-WEB-MS-01
+              wls_ms_port: 8303
+
+    soa_web_admin:
+      hosts:
+        soa-web-ms-vm-01.company.internal:
 
     soa_sgg:
-      hosts:
-        soa-sgg-vm-01.company.internal:
-          wls_ms_name: SOA-SGG-MS-01
-          wls_ms_port: 8032
-        soa-sgg-vm-02.company.internal:
-          wls_ms_name: SOA-SGG-MS-02
-          wls_ms_port: 8032
-        soa-sgg-wsm-vm-01.company.internal:
-          wls_ms_name: WSM-SGG-MS-01
-          wls_ms_port: 8033
       vars:
         wls_domain: soa_sgg
-        wls_admin_port: 8031
+        wls_admin_port: 8401
         soainfra_schema_prefix: SGG
+      children:
+        soa_sgg_ms:
+          hosts:
+            soa-sgg-ms-vm-01.company.internal:
+              ansible_host: 10.0.43.11
+              wls_ms_name: SOA-SGG-MS-01
+              wls_ms_port: 8402
+            soa-sgg-ms-vm-02.company.internal:
+              ansible_host: 10.0.43.12
+              wls_ms_name: SOA-SGG-MS-02
+              wls_ms_port: 8402
+        soa_sgg_wsm:
+          hosts:
+            soa-sgg-wsm-vm-01.company.internal:
+              ansible_host: 10.0.43.13
+              wls_ms_name: WSM-SGG-MS-01
+              wls_ms_port: 8403
+
+    soa_sgg_admin:
+      hosts:
+        soa-sgg-ms-vm-01.company.internal:
 
     db_nodes:
       hosts:

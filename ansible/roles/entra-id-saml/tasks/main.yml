@@ -71,6 +71,7 @@
   tags: configure
   become: true
   become_user: "{{ oracle_user }}"
+  no_log: true
   ansible.builtin.template:
     src: configure-saml.py.j2
     dest: "{{ saml_configure_script }}"
@@ -89,13 +90,14 @@
   tags: configure
   become: true
   become_user: "{{ oracle_user }}"
+  no_log: true
   ansible.builtin.command:
     cmd: "{{ wls_home }}/oracle_common/common/bin/wlst.sh {{ saml_configure_script }}"
   environment:
     JAVA_HOME: "{{ java_home }}"
     DOMAIN_HOME: "{{ domain_home }}"
     WLS_ADMIN_USER: "{{ admin_user }}"
-    WLS_ADMIN_PASSWORD: "{{ admin_password }}"
+    WLS_ADMIN_PASSWORD: "{{ vault_wls_admin_password }}"
   register: saml_result
   changed_when: "'SAML Identity Asserter configured' in saml_result.stdout"
   failed_when: saml_result.rc != 0

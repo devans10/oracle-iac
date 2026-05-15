@@ -87,7 +87,7 @@
     group: root
     mode: "0644"
   become: true
-  notify: reload sysctl
+  notify: Reload sysctl
   tags: [configure]
 
 - name: Apply Oracle OS limits
@@ -101,7 +101,7 @@
   tags: [configure]
 
 - name: Disable firewalld on app VMs
-  ansible.builtin.service:
+  ansible.builtin.systemd:
     name: firewalld
     state: stopped
     enabled: false
@@ -110,7 +110,7 @@
   tags: [configure]
 
 - name: Ensure firewalld is running on OHS VMs
-  ansible.builtin.service:
+  ansible.builtin.systemd:
     name: firewalld
     state: started
     enabled: true
