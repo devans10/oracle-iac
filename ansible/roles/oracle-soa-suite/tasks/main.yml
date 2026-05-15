@@ -1,1 +1,77 @@
---- # oracle-soa-suite tasks
+---
+# oracle-soa-suite — installs SOA Suite 12.2.1.4 binaries via silent FMW installer.
+# Prerequisite: oracle-weblogic (WLS 14.1.1 MW_HOME) must be installed.
+# Idempotent: guarded by stat on soa-ant-util marker file.
+
+- name: Ensure SOA stage directory exists
+  ansible.builtin.file:
+    path: "{{ soa_install_dir }}"
+    state: directory
+    owner: "{{ oracle_user }}"
+    group: "{{ oracle_group }}"
+    mode: "0755"
+  become: true
+  tags: [install]
+
+- name: Check if SOA Suite is already installed
+  ansible.builtin.stat:
+    path: "{{ soa_home }}/soa/bin/ant-soa-util.xml"
+  register: soa_installed
+  tags: [install]
+
+- name: Install SOA Suite binaries
+  when: not soa_installed.stat.exists
+  tags: [install]
+  block:
+    - name: Ensure oraInventory directory exists
+      ansible.builtin.file:
+        path: "{{ ora_inventory_dir }}"
+        state: directory
+        owner: "{{ oracle_user }}"
+        group: "{{ oracle_group }}"
+        mode: "0770"
+      become: true
+
+    - name: Render SOA silent install response file
+      ansible.builtin.template:
+        src: soa-install.rsp.j2
+        dest: "{{ soa_install_rsp }}"
+        owner: "{{ oracle_user }}"
+        group: "{{ oracle_group }}"
+        mode: "0640"
+      become: true
+      become_user: "{{ oracle_user }}"
+
+    - name: Run SOA Suite silent installer
+      ansible.builtin.command:
+        cmd: >
+          {{ java_home }}/bin/java
+          -jar {{ soa_installer }}
+          -silent
+          -invPtrLoc {{ ora_inst_loc }}
+          -responseFile {{ soa_install_rsp }}
+          -jreLoc {{ java_home }}
+        creates: "{{ soa_home }}/soa/bin/ant-soa-util.xml"
+      become: true
+      become_user: "{{ oracle_user }}"
+      environment:
+        JAVA_HOME: "{{ java_home }}"
+        MW_HOME: "{{ mw_home }}"
+      register: soa_install_result
+      changed_when: soa_install_result.rc == 0
+      failed_when: soa_install_result.rc not in [0]
+
+  rescue:
+    - name: Show SOA install log on failure
+      ansible.builtin.command:
+        cmd: tail -100 {{ soa_install_log }}
+      changed_when: false
+      failed_when: true
+
+- name: Verify SOA Suite installation
+  ansible.builtin.stat:
+    path: "{{ soa_home }}/soa/bin/ant-soa-util.xml"
+  register: soa_verify
+  failed_when: not soa_verify.stat.exists
+  changed_when: false
+  tags: [validate]

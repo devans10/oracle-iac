@@ -1,1 +1,12 @@
---- # wls-domain-soa-web defaults
+---
+soa_domain_name: soa_web
+soa_domain_home: "{{ oracle_config }}/soa_web"
+soa_admin_port: 8301
+soa_ms_port: 8302
+soa_wsm_port: 8303
+soa_ms_group: soa_web_ms
+soa_wsm_group: soa_web_wsm
+soa_db_user: WEB_SOAINFRA
+soa_db_service: "{{ soa_db_service_web }}"
+wlst_script_dir: "{{ oracle_stage }}/wlst"
+soa_domain_script: "{{ wlst_script_dir }}/create-soa-web-domain.py"

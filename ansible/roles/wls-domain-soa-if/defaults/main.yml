@@ -1,1 +1,12 @@
---- # wls-domain-soa-if defaults
+---
+soa_domain_name: soa_if
+soa_domain_home: "{{ oracle_config }}/soa_if"
+soa_admin_port: 8201
+soa_ms_port: 8202
+soa_wsm_port: 8203
+soa_ms_group: soa_if_ms
+soa_wsm_group: soa_if_wsm
+soa_db_user: IF_SOAINFRA
+soa_db_service: "{{ soa_db_service_if }}"
+wlst_script_dir: "{{ oracle_stage }}/wlst"
+soa_domain_script: "{{ wlst_script_dir }}/create-soa-if-domain.py"

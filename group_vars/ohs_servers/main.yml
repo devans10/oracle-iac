@@ -1,0 +1,5 @@
+---
+# OHS node group variables — apply to all ohs_servers hosts.
+# OHS nodes run Oracle HTTP Server only; no WLS domains.
+
+bt_wls_domains: []

@@ -1,0 +1,19 @@
+[Unit]
+Description=Oracle HTTP Server
+After=network.target
+
+[Service]
+Type=forking
+User={{ oracle_user }}
+Group={{ oracle_group }}
+Environment=ORACLE_HOME={{ ohs_home }}
+Environment=JAVA_HOME={{ java_home }}
+ExecStart={{ ohs_home }}/ohs/bin/apachectl -d {{ ohs_conf_dir }} -k start
+ExecStop={{ ohs_home }}/ohs/bin/apachectl -d {{ ohs_conf_dir }} -k stop
+ExecReload={{ ohs_home }}/ohs/bin/apachectl -d {{ ohs_conf_dir }} -k graceful
+PIDFile={{ ohs_conf_dir }}/logs/httpd.pid
+Restart=on-failure
+RestartSec=15
+
+[Install]
+WantedBy=multi-user.target
