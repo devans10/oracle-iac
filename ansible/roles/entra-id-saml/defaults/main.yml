@@ -1,1 +1,22 @@
---- # entra-id-saml defaults
+---
+saml_config_dir: "{{ oracle_config }}/saml"
+saml_metadata_dest: "{{ saml_config_dir }}/entra-idp-metadata.xml"
+saml_metadata_clean: "{{ saml_config_dir }}/entra-idp-metadata-clean.xml"
+saml_wlst_dir: "{{ oracle_stage }}/wlst"
+saml_configure_script: "{{ saml_wlst_dir }}/configure-saml.py"
+
+# Override per domain in group_vars — e.g. "https://ccb.company.com/ouaf"
+saml_sp_entity_id: ""
+
+# From Entra ID Enterprise Application — override in group_vars
+saml_idp_entity_id: ""
+
+# SP Assertion Consumer Service URL — override in group_vars
+saml_assertion_consumer_url: ""
+
+# SAML cookie path — must be / for cross-context-path SSO (ADR-003)
+saml_cookie_path: "/"
+
+# Local path to the raw Entra ID metadata XML file on the Ansible control node.
+# Set via --extra-vars or group_vars. Must not be empty.
+saml_idp_metadata_src: ""

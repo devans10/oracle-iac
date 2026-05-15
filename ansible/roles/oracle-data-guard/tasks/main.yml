@@ -1,1 +1,66 @@
---- # oracle-data-guard tasks
+---
+- name: Check Data Guard configuration status
+  tags: validate
+  become: true
+  become_user: oracle
+  ansible.builtin.command:
+    cmd: "{{ dgmgrl_bin }} -silent / 'show configuration verbose'"
+  register: dg_status
+  changed_when: false
+  failed_when: false
+
+- name: Show Data Guard configuration
+  tags: validate
+  ansible.builtin.debug:
+    msg: "{{ dg_status.stdout_lines }}"
+  when: dg_status.stdout is defined
+
+- name: Fail if Data Guard is not in SUCCESS state
+  tags: validate
+  ansible.builtin.fail:
+    msg: "Data Guard configuration not in SUCCESS state"
+  when: dg_status.rc == 0 and 'SUCCESS' not in dg_status.stdout
+
+- name: Append DR SCAN standby TNS aliases to tnsnames.ora
+  tags: configure
+  become: true
+  become_user: oracle
+  ansible.builtin.blockinfile:
+    path: "{{ tns_admin }}/tnsnames.ora"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK — DG Standby"
+    block: |
+      CCB_DR =
+        (DESCRIPTION =
+          (ADDRESS = (PROTOCOL = TCP)(HOST = {{ dg_standby_scan.ccb }})(PORT = 1521))
+          (CONNECT_DATA =
+            (SERVER = DEDICATED)
+            (SERVICE_NAME = CCB_DR)
+          )
+        )
+
+      MDM_DR =
+        (DESCRIPTION =
+          (ADDRESS = (PROTOCOL = TCP)(HOST = {{ dg_standby_scan.mdm }})(PORT = 1521))
+          (CONNECT_DATA =
+            (SERVER = DEDICATED)
+            (SERVICE_NAME = MDM_DR)
+          )
+        )
+
+      SOA_DR =
+        (DESCRIPTION =
+          (ADDRESS = (PROTOCOL = TCP)(HOST = {{ dg_standby_scan.soa }})(PORT = 1521))
+          (CONNECT_DATA =
+            (SERVER = DEDICATED)
+            (SERVICE_NAME = SOA_DR)
+          )
+        )
+    create: false
+
+- name: Show Data Guard observer and protection mode summary
+  tags: validate
+  ansible.builtin.debug:
+    msg:
+      - "DG observer host : {{ dg_observer_host }}"
+      - "DG protection mode: {{ dg_protection_mode }}"
+      - "DG observer enabled: {{ dg_observer_enabled }}"
