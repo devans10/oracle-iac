@@ -27,17 +27,30 @@
     mode: "0640"
   become: true
   become_user: "{{ oracle_user }}"
+  no_log: true
   tags: [deploy]
 
 - name: Deploy WebServices.ear
-  ansible.builtin.command:
-    cmd: "{{ wls_home }}/oracle_common/common/bin/wlst.sh {{ iws_deploy_script }}"
-  become: true
-  become_user: "{{ oracle_user }}"
-  environment:
-    JAVA_HOME: "{{ java_home }}"
-    MW_HOME: "{{ mw_home }}"
-  register: iws_deploy_result
-  changed_when: "'Successfully deployed' in iws_deploy_result.stdout"
-  failed_when: iws_deploy_result.rc not in [0]
-  tags: [deploy]
+  block:
+    - name: Execute IWS deploy WLST script
+      ansible.builtin.command:
+        cmd: "{{ wls_home }}/oracle_common/common/bin/wlst.sh {{ iws_deploy_script }}"
+      become: true
+      become_user: "{{ oracle_user }}"
+      environment:
+        JAVA_HOME: "{{ java_home }}"
+        MW_HOME: "{{ mw_home }}"
+        WLS_ADMIN_PASSWORD: "{{ admin_password }}"
+      register: iws_deploy_result
+      changed_when: "'Successfully deployed' in iws_deploy_result.stdout"
+      failed_when: iws_deploy_result.rc not in [0]
+      no_log: true
+      tags: [deploy]
+  always:
+    - name: Remove IWS deploy WLST script after use
+      ansible.builtin.file:
+        path: "{{ iws_deploy_script }}"
+        state: absent
+      become: true
+      become_user: "{{ oracle_user }}"
+      tags: [deploy]

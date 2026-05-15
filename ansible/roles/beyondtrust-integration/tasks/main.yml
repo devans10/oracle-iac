@@ -36,8 +36,8 @@
     src: bt-env.sh.j2
     dest: /etc/profile.d/bt-env.sh
     owner: root
-    group: root
-    mode: "0644"
+    group: "{{ oracle_group }}"
+    mode: "0640"
   become: true
   tags: configure
 

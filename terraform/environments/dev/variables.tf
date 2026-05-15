@@ -1,6 +1,7 @@
 variable "libvirt_uri" {
   description = "libvirt connection URI for dev KVM host"
   type        = string
+  sensitive   = true
 }
 
 variable "oracle_linux_image" {

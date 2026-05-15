@@ -28,6 +28,7 @@
   become: true
   become_user: "{{ oracle_user }}"
   when: not mdm_domain_exists.stat.exists
+  no_log: true
   tags: [configure]
 
 - name: Create MDM WLS domain
@@ -39,10 +40,12 @@
   environment:
     JAVA_HOME: "{{ java_home }}"
     MW_HOME: "{{ mw_home }}"
+    WLS_ADMIN_PASSWORD: "{{ vault_wls_admin_password }}"
   register: mdm_domain_result
   changed_when: mdm_domain_result.rc == 0
   failed_when: mdm_domain_result.rc not in [0]
   when: not mdm_domain_exists.stat.exists
+  no_log: true
   tags: [configure]
 
 - name: Verify MDM domain config.xml exists

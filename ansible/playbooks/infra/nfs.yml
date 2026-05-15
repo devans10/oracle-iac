@@ -1,21 +1,26 @@
 ---
-# nfs.yml — Mount NFS shared directories on app VMs that need them.
+# nfs.yml — Configure NFS server exports and mount NFS shared directories on app VMs.
 # Skipped entirely when enable_nfs is false (dev environments).
 # Per ADR-002: NFS used only for batch output, SOA file adapter, and MDM IMD ingest.
+
+- name: Configure NFS server exports
+  hosts: nfs_servers
+  gather_facts: true
+  roles:
+    - role: nfs-server
+      when: enable_nfs | default(true) | bool
+  tags: [nfs, configure]
 
 - name: Mount NFS shared directories
   hosts: app_servers
   gather_facts: true
   tasks:
-    - name: Skip NFS setup when disabled
-      ansible.builtin.meta: end_play
-      when: not (enable_nfs | bool)
-
     - name: Install nfs-utils
       ansible.builtin.package:
         name: nfs-utils
         state: present
       become: true
+      when: enable_nfs | bool
       tags: [install]
 
     - name: Create NFS mount point directories
@@ -30,6 +35,7 @@
         - "{{ nfs_mount_imd }}"
         - "{{ nfs_mount_soa }}"
       become: true
+      when: enable_nfs | bool
       tags: [configure]
 
     - name: Mount batch output NFS share
@@ -40,7 +46,7 @@
         opts: rw,sync,hard,intr,timeo=600,retrans=3
         state: mounted
       become: true
-      when: "'ccb_all' in group_names or 'mdm_all' in group_names"
+      when: enable_nfs | bool and ('ccb_all' in group_names or 'mdm_all' in group_names)
       tags: [configure]
 
     - name: Mount MDM IMD ingest NFS share
@@ -51,7 +57,7 @@
         opts: rw,sync,hard,intr,timeo=600,retrans=3
         state: mounted
       become: true
-      when: "'mdm_all' in group_names"
+      when: enable_nfs | bool and 'mdm_all' in group_names
       tags: [configure]
 
     - name: Mount SOA file adapter NFS share
@@ -62,7 +68,7 @@
         opts: rw,sync,hard,intr,timeo=600,retrans=3
         state: mounted
       become: true
-      when: "'soa_all' in group_names"
+      when: enable_nfs | bool and 'soa_all' in group_names
       tags: [configure]
 
     - name: Create local fallback directories when NFS is disabled

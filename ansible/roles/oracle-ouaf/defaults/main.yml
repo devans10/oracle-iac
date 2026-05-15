@@ -4,3 +4,7 @@
 app_splebase: "{{ oracle_base }}/{{ app | default('ccb') }}"
 ouaf_install_dir: "{{ oracle_stage }}/ouaf"
 ouaf_install_log: "{{ oracle_logs }}/ouaf-install.log"
+
+# DB connection defaults — point to CCB by default; override in mdm_all group_vars.
+app_db_scan: "{{ ccb_db_scan }}"
+app_db_service: "{{ ccb_db_service }}"

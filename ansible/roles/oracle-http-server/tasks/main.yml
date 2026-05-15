@@ -78,7 +78,6 @@
     owner: "{{ oracle_user }}"
     group: "{{ oracle_group }}"
     mode: "0640"
-    validate: "{{ ohs_home }}/ohs/bin/apachectl -t -f %s 2>&1 || true"
   become: true
   become_user: "{{ oracle_user }}"
   notify: Restart OHS

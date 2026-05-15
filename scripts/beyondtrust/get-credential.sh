@@ -17,10 +17,15 @@ CLIENT_ID="${BT_CLIENT_ID:?BT_CLIENT_ID not set}"
 CLIENT_SECRET="${BT_CLIENT_SECRET:?BT_CLIENT_SECRET not set}"
 
 # Step 1: Authenticate
+# Write JSON body to a restricted temp file so credentials are not visible in ps aux.
+_tmpbody=$(mktemp)
+chmod 600 "${_tmpbody}"
+printf '{"client_id": "%s", "client_secret": "%s"}' "${CLIENT_ID}" "${CLIENT_SECRET}" > "${_tmpbody}"
 TOKEN_RESPONSE=$(curl -sf -X POST \
   "${API_BASE}/Auth/SignAppIn" \
   -H "Content-Type: application/json" \
-  -d "{\"client_id\": \"${CLIENT_ID}\", \"client_secret\": \"${CLIENT_SECRET}\"}")
+  --data "@${_tmpbody}")
+rm -f "${_tmpbody}"
 TOKEN=$(echo "$TOKEN_RESPONSE" | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])")
 
 # Step 2: Create credential release request

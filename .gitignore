@@ -1,7 +1,7 @@
 # Secrets — NEVER commit
 *.vault
 *.vault.yml
-vault.yml
+**/vault.yml
 .vault_pass
 *.p12
 *.jks
@@ -29,14 +29,17 @@ ansible/inventories/*.retry
 ansible/inventories/primary.yml
 ansible/inventories/dr.yml
 ansible/inventories/dev.yml
-group_vars/**/vault.yml
+# vault.yml covered by **/vault.yml above (ansible/group_vars, host_vars, etc.)
+ansible/group_vars/**/vault.yml
 host_vars/**/vault.yml
+ansible/host_vars/**/vault.yml
 
 # Oracle software media and installers
 *.zip
 *.jar
 *.tar.gz
 *.gz
+*.properties
 media/
 
 # Logs and temp

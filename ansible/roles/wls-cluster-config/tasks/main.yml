@@ -11,6 +11,7 @@
     mode: "0640"
   become: true
   become_user: "{{ oracle_user }}"
+  no_log: true
   tags: [configure]
 
 - name: Wait for Admin Server to be reachable
@@ -21,14 +22,26 @@
   tags: [configure]
 
 - name: Run cluster config WLST script
-  ansible.builtin.command:
-    cmd: "{{ wls_home }}/oracle_common/common/bin/wlst.sh {{ wlst_config_script }}"
-  become: true
-  become_user: "{{ oracle_user }}"
-  environment:
-    JAVA_HOME: "{{ java_home }}"
-    MW_HOME: "{{ mw_home }}"
-  register: cluster_config_result
-  changed_when: "'Configuration updated' in cluster_config_result.stdout"
-  failed_when: cluster_config_result.rc not in [0]
-  tags: [configure]
+  block:
+    - name: Execute cluster config WLST script
+      ansible.builtin.command:
+        cmd: "{{ wls_home }}/oracle_common/common/bin/wlst.sh {{ wlst_config_script }}"
+      become: true
+      become_user: "{{ oracle_user }}"
+      environment:
+        JAVA_HOME: "{{ java_home }}"
+        MW_HOME: "{{ mw_home }}"
+        WLS_ADMIN_PASSWORD: "{{ admin_password }}"
+      register: cluster_config_result
+      changed_when: "'Configuration updated' in cluster_config_result.stdout"
+      failed_when: cluster_config_result.rc not in [0]
+      no_log: true
+      tags: [configure]
+  always:
+    - name: Remove cluster config WLST script after use
+      ansible.builtin.file:
+        path: "{{ wlst_config_script }}"
+        state: absent
+      become: true
+      become_user: "{{ oracle_user }}"
+      tags: [configure]

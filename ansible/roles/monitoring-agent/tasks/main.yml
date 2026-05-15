@@ -46,8 +46,9 @@
     owner: root
     group: root
     mode: "0644"
-    validate: /usr/bin/true %s
-  notify: Reload systemd
+  notify:
+    - Reload systemd
+    - Restart node exporter
 
 - name: Enable and start node_exporter service
   tags: configure

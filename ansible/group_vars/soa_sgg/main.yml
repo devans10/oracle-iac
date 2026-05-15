@@ -6,8 +6,8 @@ soa_domain_home: "{{ oracle_config }}/soa_sgg"
 soa_ms_group: soa_sgg_ms
 soa_wsm_group: soa_sgg_wsm
 
-# WLS Admin Server — first host in soa_sgg group is the Admin Server VM.
-admin_host: "{{ hostvars[groups['soa_sgg'][0]]['ansible_host'] | default(groups['soa_sgg'][0]) }}"
+# WLS Admin Server — first host in soa_sgg_admin group is the Admin Server VM.
+admin_host: "{{ hostvars[groups['soa_sgg_admin'][0]]['ansible_host'] | default(groups['soa_sgg_admin'][0]) }}"
 admin_port: 8401
 admin_user: weblogic
 admin_password: "{{ vault_wls_admin_password }}"

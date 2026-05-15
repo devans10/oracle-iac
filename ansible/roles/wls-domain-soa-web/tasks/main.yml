@@ -32,6 +32,7 @@
   become_user: "{{ oracle_user }}"
   when: not soa_domain_exists.stat.exists
   run_once: true
+  no_log: true
   tags: [configure]
 
 - name: Create SOA WLS domain
@@ -43,11 +44,13 @@
   environment:
     JAVA_HOME: "{{ java_home }}"
     MW_HOME: "{{ mw_home }}"
+    WLS_ADMIN_PASSWORD: "{{ vault_wls_admin_password }}"
   register: soa_domain_result
   changed_when: soa_domain_result.rc == 0
   failed_when: soa_domain_result.rc not in [0]
   when: not soa_domain_exists.stat.exists
   run_once: true
+  no_log: true
   tags: [configure]
 
 - name: Verify SOA domain config.xml exists

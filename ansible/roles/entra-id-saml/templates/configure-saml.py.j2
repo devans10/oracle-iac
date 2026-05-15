@@ -78,7 +78,7 @@ try:
     # Create or locate the SP partner site
     cmo.createSAML2CredentialMapper(sp_entity_id)
     spSite = cmo.lookupSAML2CredentialMapper(sp_entity_id)
-    spSite.setEnabled(true)
+    spSite.setEnabled(True)
     spSite.setACSURL(assertion_consumer_url)
     spSite.setACSURLDefault(assertion_consumer_url)
 
@@ -90,7 +90,7 @@ try:
     # ----------------------------------------------------------------
     print('Registering IdP partner from metadata: %s' % idp_metadata_path)
     idpPartnerMBean = cmo.newIdPPartner()
-    idpPartnerMBean.setEnabled(true)
+    idpPartnerMBean.setEnabled(True)
     idpPartnerMBean.setDescription('Entra ID IdP for ' + domain_name)
     idpPartnerMBean.setEntityID(idp_entity_id)
 

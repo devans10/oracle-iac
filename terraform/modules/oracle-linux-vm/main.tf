@@ -1,14 +1,6 @@
 # oracle-linux-vm module — provisions a single Oracle Linux VM on a KVM host
 # See variables.tf for all inputs; outputs.tf for VM IP/name outputs
-
-terraform {
-  required_providers {
-    libvirt = {
-      source  = "dmacvicar/libvirt"
-      version = "~> 0.7"
-    }
-  }
-}
+# Provider requirements declared in providers.tf to support caller-supplied provider aliases.
 
 resource "libvirt_volume" "os_disk" {
   name             = "${var.vm_name}-os.qcow2"
