@@ -1,0 +1,79 @@
+---
+# DigitalOcean dev environment inventory — copy to do-dev.yml and populate real IPs from Terraform outputs.
+# Single-instance Oracle DB (not RAC). Each app Droplet hosts all WLS clusters for its product.
+#
+# After terraform apply:
+#   export DB_IP=$(terraform -chdir=terraform/environments/do-dev output -raw db_droplet_private_ip)
+#   export CCB_IP=$(terraform -chdir=terraform/environments/do-dev output -raw ccb_app_private_ip)
+#   export MDM_IP=$(terraform -chdir=terraform/environments/do-dev output -raw mdm_app_private_ip)
+#   export SOA_IP=$(terraform -chdir=terraform/environments/do-dev output -raw soa_app_private_ip)
+
+all:
+  vars:
+    ansible_user: oracle
+    ansible_ssh_private_key_file: ~/.ssh/oracle_iac_dev
+    # Single-instance overrides — dev maps db_scan to the single DB Droplet hostname/IP
+    ccb_db_scan: "{{ hostvars['do-dev-db-vm-01']['ansible_host'] }}"
+    mdm_db_scan: "{{ hostvars['do-dev-db-vm-01']['ansible_host'] }}"
+    soa_db_scan: "{{ hostvars['do-dev-db-vm-01']['ansible_host'] }}"
+    oracle_db_host: "{{ hostvars['do-dev-db-vm-01']['ansible_host'] }}"
+    # Feature flags — disable HA features not needed in single-VM dev
+    enable_ohs: false
+    enable_saml: false
+    enable_nfs: false
+    enable_monitoring: false
+    enable_data_guard: false
+
+  children:
+    oracle_db:
+      hosts:
+        do-dev-db-vm-01:
+          ansible_host: 10.20.0.10   # replace with Terraform output db_private_ip
+
+    ccb_all:
+      hosts:
+        do-dev-ccb-app-vm-01:
+          ansible_host: 10.20.0.11   # replace with Terraform output ccb_app_private_ip
+      children:
+        ccb_web:
+          hosts:
+            do-dev-ccb-app-vm-01:
+        ccb_iws:
+          hosts:
+            do-dev-ccb-app-vm-01:
+        ccb_batch:
+          hosts:
+            do-dev-ccb-app-vm-01:
+
+    mdm_all:
+      hosts:
+        do-dev-mdm-app-vm-01:
+          ansible_host: 10.20.0.12   # replace with Terraform output mdm_app_private_ip
+      children:
+        mdm_web:
+          hosts:
+            do-dev-mdm-app-vm-01:
+        mdm_iws:
+          hosts:
+            do-dev-mdm-app-vm-01:
+        mdm_batch:
+          hosts:
+            do-dev-mdm-app-vm-01:
+
+    soa_all:
+      hosts:
+        do-dev-soa-app-vm-01:
+          ansible_host: 10.20.0.13   # replace with Terraform output soa_app_private_ip
+      children:
+        soa_int:
+          hosts:
+            do-dev-soa-app-vm-01:
+        soa_if:
+          hosts:
+            do-dev-soa-app-vm-01:
+        soa_web:
+          hosts:
+            do-dev-soa-app-vm-01:
+        soa_sgg:
+          hosts:
+            do-dev-soa-app-vm-01:

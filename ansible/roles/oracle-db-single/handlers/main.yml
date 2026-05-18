@@ -1,0 +1,16 @@
+---
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+  become: true
+  listen: Reload systemd
+
+- name: Restart Oracle listener
+  ansible.builtin.command:
+    cmd: "{{ oracle_db_home }}/bin/lsnrctl reload {{ oracle_listener_name }}"
+  become: true
+  become_user: "{{ oracle_user }}"
+  environment:
+    ORACLE_HOME: "{{ oracle_db_home }}"
+  changed_when: true
+  listen: Restart Oracle listener

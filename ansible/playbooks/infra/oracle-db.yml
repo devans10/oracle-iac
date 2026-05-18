@@ -1,0 +1,11 @@
+---
+# Installs Oracle DB 19c single-instance on the oracle_db group.
+# Used by azure-dev and do-dev environments only; production uses oracle-rac-19c.
+- name: Install Oracle Database 19c single-instance
+  hosts: oracle_db
+  gather_facts: true
+  roles:
+    - role: oracle-linux-base
+      tags: [base]
+    - role: oracle-db-single
+      tags: [db]

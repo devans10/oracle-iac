@@ -8,6 +8,7 @@ oracle_products: "{{ oracle_base }}/products"
 oracle_config: "{{ oracle_base }}/config"
 oracle_logs: "{{ oracle_base }}/logs"
 oracle_stage: "{{ oracle_base }}/stage"
+media_base_path: "{{ oracle_stage }}/media"
 
 # --- OS Users ---
 oracle_user: oracle
