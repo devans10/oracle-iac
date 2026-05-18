@@ -1,0 +1,4 @@
+subscription_id     = "00000000-0000-0000-0000-000000000000"
+resource_group_name = "oracle-dev-rg"
+location            = "eastus"
+ssh_public_key      = "ssh-rsa AAAA..."

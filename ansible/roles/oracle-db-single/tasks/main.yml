@@ -1,0 +1,226 @@
+---
+# oracle-db-single — installs Oracle DB 19c single-instance CDB with PDBs for dev environments.
+# NOT for production; production uses oracle-rac-19c.
+
+- name: Ensure Oracle DB directories exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ oracle_user }}"
+    group: "{{ oracle_dba_group }}"
+    mode: "0755"
+  become: true
+  loop:
+    - "{{ oracle_db_home }}"
+    - "{{ oracle_db_base }}"
+    - "{{ oracle_db_install_dir }}"
+    - "{{ oracle_oradata }}"
+    - "{{ ora_inventory_dir }}"
+  loop_control:
+    label: "{{ item }}"
+  tags: [install]
+
+- name: Check if Oracle DB is already installed
+  ansible.builtin.stat:
+    path: "{{ oracle_db_home }}/bin/sqlplus"
+  register: oracle_db_installed
+  tags: [install]
+
+- name: Install Oracle Database 19c software
+  when: not oracle_db_installed.stat.exists
+  tags: [install]
+  block:
+    - name: Unzip Oracle DB installer to ORACLE_HOME
+      ansible.builtin.unarchive:
+        src: "{{ oracle_db_installer }}"
+        dest: "{{ oracle_db_home }}"
+        remote_src: true
+        creates: "{{ oracle_db_home }}/runInstaller"
+      become: true
+      become_user: "{{ oracle_user }}"
+
+    - name: Render DB silent install response file
+      ansible.builtin.template:
+        src: db-install.rsp.j2
+        dest: "{{ oracle_db_install_rsp }}"
+        owner: "{{ oracle_user }}"
+        group: "{{ oracle_dba_group }}"
+        mode: "0640"
+      become: true
+      become_user: "{{ oracle_user }}"
+
+    - name: Run Oracle DB silent installer
+      ansible.builtin.command:
+        cmd: >
+          {{ oracle_db_home }}/runInstaller
+          -silent
+          -responseFile {{ oracle_db_install_rsp }}
+          -ignorePrereqFailure
+          -waitforcompletion
+        creates: "{{ oracle_db_home }}/bin/sqlplus"
+      become: true
+      become_user: "{{ oracle_user }}"
+      environment:
+        ORACLE_HOME: "{{ oracle_db_home }}"
+        ORACLE_BASE: "{{ oracle_db_base }}"
+      register: db_install_result
+      changed_when: db_install_result.rc == 0
+      failed_when: db_install_result.rc not in [0]
+
+    - name: Run Oracle root scripts
+      ansible.builtin.command:
+        cmd: "{{ item }}"
+      become: true
+      loop:
+        - "{{ ora_inventory_dir }}/orainstRoot.sh"
+        - "{{ oracle_db_home }}/root.sh"
+      changed_when: true
+      tags: [install]
+
+  rescue:
+    - name: Show installer log tail on failure
+      ansible.builtin.command:
+        cmd: 'find {{ oracle_db_install_dir }} -name "*.log" -exec tail -50 {} \;'
+      changed_when: false
+      failed_when: true
+
+- name: Configure Oracle listener
+  ansible.builtin.template:
+    src: listener.ora.j2
+    dest: "{{ oracle_db_home }}/network/admin/listener.ora"
+    owner: "{{ oracle_user }}"
+    group: "{{ oracle_dba_group }}"
+    mode: "0640"
+  become: true
+  become_user: "{{ oracle_user }}"
+  notify: Restart Oracle listener
+  tags: [configure]
+
+- name: Start Oracle listener
+  ansible.builtin.command:
+    cmd: "{{ oracle_db_home }}/bin/lsnrctl start {{ oracle_listener_name }}"
+  become: true
+  become_user: "{{ oracle_user }}"
+  environment:
+    ORACLE_HOME: "{{ oracle_db_home }}"
+    ORACLE_BASE: "{{ oracle_db_base }}"
+  register: lsnrctl_result
+  changed_when: "'The command completed successfully' in lsnrctl_result.stdout"
+  failed_when:
+    - lsnrctl_result.rc != 0
+    - "'TNS-01106' not in lsnrctl_result.stderr"
+  tags: [configure]
+
+- name: Check if CDB already exists
+  ansible.builtin.stat:
+    path: "{{ oracle_cdb_marker }}"
+  register: cdb_marker
+  tags: [configure]
+
+- name: Create CDB via DBCA
+  when: not cdb_marker.stat.exists
+  tags: [configure]
+  block:
+    - name: Run DBCA silent CDB creation
+      ansible.builtin.command:
+        cmd: >
+          {{ oracle_db_home }}/bin/dbca
+          -silent
+          -createDatabase
+          -templateName General_Purpose.dbc
+          -gdbName {{ oracle_cdb_name }}
+          -sid {{ oracle_cdb_sid }}
+          -createAsContainerDatabase true
+          -numberOfPDBs 0
+          -characterSet {{ oracle_cdb_charset }}
+          -sysPassword {{ oracle_sys_password }}
+          -systemPassword {{ oracle_system_password }}
+          -emConfiguration NONE
+          -storageType FS
+          -datafileDestination {{ oracle_oradata }}
+          -enableArchive false
+          -memoryMgmtType AUTO
+      become: true
+      become_user: "{{ oracle_user }}"
+      environment:
+        ORACLE_HOME: "{{ oracle_db_home }}"
+        ORACLE_BASE: "{{ oracle_db_base }}"
+        ORACLE_SID: "{{ oracle_cdb_sid }}"
+      register: dbca_result
+      changed_when: dbca_result.rc == 0
+      failed_when: dbca_result.rc not in [0]
+      no_log: true
+
+    - name: Mark CDB as created
+      ansible.builtin.file:
+        path: "{{ oracle_cdb_marker }}"
+        state: touch
+        owner: "{{ oracle_user }}"
+        group: "{{ oracle_dba_group }}"
+        mode: "0600"
+      become: true
+      become_user: "{{ oracle_user }}"
+
+- name: Create PDBs
+  ansible.builtin.command:
+    cmd: >
+      {{ oracle_db_home }}/bin/sqlplus -S / as sysdba
+  args:
+    stdin: |
+      WHENEVER SQLERROR EXIT FAILURE;
+      WHENEVER OSERROR EXIT FAILURE;
+      DECLARE
+        v_count NUMBER;
+      BEGIN
+        SELECT COUNT(*) INTO v_count FROM dba_pdbs WHERE pdb_name = '{{ item.name }}';
+        IF v_count = 0 THEN
+          EXECUTE IMMEDIATE 'CREATE PLUGGABLE DATABASE {{ item.name }}
+            ADMIN USER pdbadmin IDENTIFIED BY "{{ oracle_sys_password }}"
+            FILE_NAME_CONVERT = (''{{ oracle_oradata }}/{{ oracle_cdb_name }}'',
+                                 ''{{ oracle_oradata }}/{{ item.name }}'')';
+          EXECUTE IMMEDIATE 'ALTER PLUGGABLE DATABASE {{ item.name }} OPEN';
+          EXECUTE IMMEDIATE 'ALTER PLUGGABLE DATABASE {{ item.name }} SAVE STATE';
+        END IF;
+      END;
+      /
+      EXIT;
+  become: true
+  become_user: "{{ oracle_user }}"
+  environment:
+    ORACLE_HOME: "{{ oracle_db_home }}"
+    ORACLE_BASE: "{{ oracle_db_base }}"
+    ORACLE_SID: "{{ oracle_cdb_sid }}"
+  register: pdb_result
+  changed_when: pdb_result.rc == 0
+  failed_when: pdb_result.rc != 0
+  no_log: true
+  loop: "{{ oracle_pdbs }}"
+  loop_control:
+    label: "{{ item.name }}"
+  tags: [configure]
+
+- name: Install Oracle DB systemd unit
+  ansible.builtin.template:
+    src: oracle-db.service.j2
+    dest: "/etc/systemd/system/oracle-db-{{ oracle_cdb_sid }}.service"
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  notify: Reload systemd
+  tags: [configure]
+
+- name: Enable Oracle DB service
+  ansible.builtin.systemd:
+    name: "oracle-db-{{ oracle_cdb_sid }}"
+    enabled: true
+    daemon_reload: true
+  become: true
+  tags: [configure]
+
+- name: Verify Oracle listener is up
+  ansible.builtin.wait_for:
+    host: "{{ ansible_default_ipv4.address }}"
+    port: "{{ oracle_listener_port }}"
+    timeout: 60
+  tags: [validate]

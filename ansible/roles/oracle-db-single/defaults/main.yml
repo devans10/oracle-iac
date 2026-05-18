@@ -1,0 +1,44 @@
+---
+# Oracle DB software
+oracle_db_version: "19.3"
+oracle_db_home: "/u01/oracle/products/dbhome_1"
+oracle_db_base: "/u01/oracle"
+oracle_db_install_dir: "{{ oracle_stage }}/db"
+oracle_db_installer: "{{ media_base_path }}/db/LINUX.X64_193000_db_home.zip"
+oracle_db_install_rsp: "{{ oracle_db_install_dir }}/db-install.rsp"
+oracle_db_install_log: "{{ oracle_logs }}/db-install.log"
+
+# CDB
+oracle_cdb_name: CDBDEV
+oracle_cdb_charset: AL32UTF8
+oracle_cdb_sid: CDBDEV
+
+# Listener
+oracle_listener_port: 1521
+oracle_listener_name: LISTENER
+
+# PDBs to create — one per application schema set
+oracle_pdbs:
+  - name: CCBDEV
+    var_prefix: ccb
+  - name: MDMDEV
+    var_prefix: mdm
+  - name: SOADEV
+    var_prefix: soa
+
+# System passwords — MUST be overridden via Ansible Vault.
+# Intentionally unset here so any run without vault.yml fails loudly
+# rather than silently using a weak default.
+oracle_sys_password: "{{ vault_oracle_sys_password }}"
+oracle_system_password: "{{ vault_oracle_sys_password }}"
+
+# Oracle OS config
+oracle_dba_group: dba
+ora_inventory_dir: "{{ oracle_products }}/oraInventory"
+
+# Oradata directory root (CDB and PDB datafiles)
+oracle_oradata: "/u01/oracle/oradata"
+
+# Marker file written after successful CDB creation so the dbca block
+# is skipped on subsequent Ansible runs.
+oracle_cdb_marker: "/tmp/.oracle_cdb_{{ oracle_cdb_sid }}_created"

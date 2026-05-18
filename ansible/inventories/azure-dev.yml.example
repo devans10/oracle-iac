@@ -1,0 +1,80 @@
+---
+# Azure dev environment inventory — copy to azure-dev.yml and populate real IPs from Terraform outputs.
+# Single-instance Oracle DB (not RAC). Each app VM hosts all WLS clusters for its product.
+#
+# After terraform apply:
+#   export DB_IP=$(terraform -chdir=terraform/environments/azure-dev output -raw db_vm_private_ip)
+#   export CCB_IP=$(terraform -chdir=terraform/environments/azure-dev output -raw ccb_app_vm_private_ip)
+#   export MDM_IP=$(terraform -chdir=terraform/environments/azure-dev output -raw mdm_app_vm_private_ip)
+#   export SOA_IP=$(terraform -chdir=terraform/environments/azure-dev output -raw soa_app_vm_private_ip)
+
+all:
+  vars:
+    ansible_user: oracle
+    ansible_ssh_private_key_file: ~/.ssh/oracle_iac_dev
+    # Single-instance overrides — dev maps db_scan to the single DB VM hostname/IP
+    # so the oracle-rac-client tnsnames template works without modification.
+    ccb_db_scan: "{{ hostvars['oracle-db-vm-01']['ansible_host'] }}"
+    mdm_db_scan: "{{ hostvars['oracle-db-vm-01']['ansible_host'] }}"
+    soa_db_scan: "{{ hostvars['oracle-db-vm-01']['ansible_host'] }}"
+    oracle_db_host: "{{ hostvars['oracle-db-vm-01']['ansible_host'] }}"
+    # Feature flags — disable HA features not needed in single-VM dev
+    enable_ohs: false
+    enable_saml: false
+    enable_nfs: false
+    enable_monitoring: false
+    enable_data_guard: false
+
+  children:
+    oracle_db:
+      hosts:
+        oracle-db-vm-01:
+          ansible_host: 10.10.2.10   # replace with Terraform output db_vm_private_ip
+
+    ccb_all:
+      hosts:
+        ccb-app-vm-01:
+          ansible_host: 10.10.1.10   # replace with Terraform output ccb_app_vm_private_ip
+      children:
+        ccb_web:
+          hosts:
+            ccb-app-vm-01:
+        ccb_iws:
+          hosts:
+            ccb-app-vm-01:
+        ccb_batch:
+          hosts:
+            ccb-app-vm-01:
+
+    mdm_all:
+      hosts:
+        mdm-app-vm-01:
+          ansible_host: 10.10.1.11   # replace with Terraform output mdm_app_vm_private_ip
+      children:
+        mdm_web:
+          hosts:
+            mdm-app-vm-01:
+        mdm_iws:
+          hosts:
+            mdm-app-vm-01:
+        mdm_batch:
+          hosts:
+            mdm-app-vm-01:
+
+    soa_all:
+      hosts:
+        soa-app-vm-01:
+          ansible_host: 10.10.1.12   # replace with Terraform output soa_app_vm_private_ip
+      children:
+        soa_int:
+          hosts:
+            soa-app-vm-01:
+        soa_if:
+          hosts:
+            soa-app-vm-01:
+        soa_web:
+          hosts:
+            soa-app-vm-01:
+        soa_sgg:
+          hosts:
+            soa-app-vm-01:

@@ -1,0 +1,19 @@
+[Unit]
+Description=Oracle Database 19c - {{ oracle_cdb_sid }}
+After=network.target
+
+[Service]
+Type=forking
+User={{ oracle_user }}
+Group={{ oracle_dba_group }}
+Environment=ORACLE_HOME={{ oracle_db_home }}
+Environment=ORACLE_BASE={{ oracle_db_base }}
+Environment=ORACLE_SID={{ oracle_cdb_sid }}
+ExecStart={{ oracle_db_home }}/bin/dbstart {{ oracle_db_home }}
+ExecStop={{ oracle_db_home }}/bin/dbshut {{ oracle_db_home }}
+TimeoutStartSec=600
+TimeoutStopSec=300
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,13 @@
+# terraform.tfvars.example — copy to terraform.tfvars and fill in real values.
+# terraform.tfvars is .gitignored — NEVER commit the file containing real values.
+#
+# Usage:
+#   cp terraform.tfvars.example terraform.tfvars
+#   # Edit terraform.tfvars with actual values, then:
+#   terraform init -backend-config=../../backend.hcl
+#   terraform plan
+
+do_token           = "dop_v1_CHANGE_ME"
+region             = "nyc3"
+oracle_linux_image = "CHANGE_ME" # Custom image ID from: doctl compute image list --public
+ssh_key_ids        = [12345678]  # doctl compute ssh-key list
