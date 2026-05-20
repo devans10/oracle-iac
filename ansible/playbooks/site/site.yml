@@ -26,3 +26,9 @@
 
 - name: Import security plays (Entra SAML, BeyondTrust)
   ansible.builtin.import_playbook: ../security/configure.yml
+
+- name: Import monitoring plays
+  ansible.builtin.import_playbook: ../infra/monitoring.yml
+
+- name: Import Data Guard plays
+  ansible.builtin.import_playbook: ../infra/data-guard.yml

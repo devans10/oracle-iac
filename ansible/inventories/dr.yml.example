@@ -1,0 +1,325 @@
+---
+# dr.yml.example — copy to dr.yml and fill in real hostnames/IPs for DR Site B
+# dr.yml is .gitignored — NEVER commit real inventory values
+#
+# Structure mirrors primary.yml.example exactly.
+# All host names carry a -dr- infix and use 10.2.x.x (DR site subnet).
+# This inventory is used with activate-dr.sh and for post-failover app restarts:
+#   ansible-playbook ansible/playbooks/site/site.yml -i ansible/inventories/dr.yml --tags configure
+
+all:
+  vars:
+    ansible_user: oracle
+    ansible_ssh_private_key_file: ~/.ssh/oracle_iac_ed25519
+    env: dr
+    oracle_base: /u01/oracle
+    oracle_products: /u01/oracle/products
+    oracle_config: /u01/oracle/config
+    oracle_logs: /u01/oracle/logs
+
+    # Oracle stage/media paths
+    oracle_stage:    /u01/oracle/stage
+    media_base_path: /u01/oracle/media
+
+    # Feature flags — match primary production defaults
+    enable_ohs:        true
+    enable_saml:       true
+    enable_nfs:        true
+    enable_monitoring: true
+
+    # Data Guard settings — DR site is the standby
+    enable_data_guard: true
+    dg_role: standby
+
+    # DR site SCAN listeners — override all/main.yml production RAC addresses.
+    # oracle-rac-client uses these for tnsnames.ora generation.
+    ccb_db_scan: "dr-ccb-scan.company.internal"
+    mdm_db_scan: "dr-mdm-scan.company.internal"
+    soa_db_scan: "dr-soa-scan.company.internal"
+
+  children:
+    ohs_servers:
+      hosts:
+        ohs-dr-vm-01.company.internal:
+          ansible_host: 10.2.10.11
+        ohs-dr-vm-02.company.internal:
+          ansible_host: 10.2.10.12
+        ohs-dr-vm-03.company.internal:
+          ansible_host: 10.2.10.13
+
+    ccb_admin:
+      hosts:
+        ccb-admin-dr-vm-01.company.internal:
+          ansible_host: 10.2.20.10
+      vars:
+        wls_domain: ccb_domain
+        wls_admin_port: 7001
+
+    ccb_web:
+      hosts:
+        ccb-web-dr-vm-01.company.internal:
+          ansible_host: 10.2.20.11
+          wls_ms_name: CCB-WEB-MS-01
+          wls_ms_port: 7002
+        ccb-web-dr-vm-02.company.internal:
+          ansible_host: 10.2.20.12
+          wls_ms_name: CCB-WEB-MS-02
+          wls_ms_port: 7002
+      vars:
+        wls_cluster: CCB-WEB
+        wls_domain: ccb_domain
+
+    ccb_iws:
+      hosts:
+        ccb-iws-dr-vm-01.company.internal:
+          ansible_host: 10.2.20.21
+          wls_ms_name: CCB-IWS-MS-01
+          wls_ms_port: 7004
+        ccb-iws-dr-vm-02.company.internal:
+          ansible_host: 10.2.20.22
+          wls_ms_name: CCB-IWS-MS-02
+          wls_ms_port: 7004
+      vars:
+        wls_cluster: CCB-IWS
+        wls_domain: ccb_domain
+
+    ccb_batch:
+      hosts:
+        ccb-batch-dr-vm-01.company.internal:
+          ansible_host: 10.2.20.31
+          wls_ms_name: CCB-BATCH-MS-01
+          wls_ms_port: 7006
+        ccb-batch-dr-vm-02.company.internal:
+          ansible_host: 10.2.20.32
+          wls_ms_name: CCB-BATCH-MS-02
+          wls_ms_port: 7006
+      vars:
+        wls_cluster: CCB-BATCH
+        wls_domain: ccb_domain
+
+    mdm_admin:
+      hosts:
+        mdm-admin-dr-vm-01.company.internal:
+          ansible_host: 10.2.21.10
+      vars:
+        wls_domain: mdm_domain
+        wls_admin_port: 7011
+
+    mdm_web:
+      hosts:
+        mdm-web-dr-vm-01.company.internal:
+          ansible_host: 10.2.21.11
+          wls_ms_name: MDM-WEB-MS-01
+          wls_ms_port: 7012
+        mdm-web-dr-vm-02.company.internal:
+          ansible_host: 10.2.21.12
+          wls_ms_name: MDM-WEB-MS-02
+          wls_ms_port: 7012
+      vars:
+        wls_cluster: MDM-WEB
+        wls_domain: mdm_domain
+
+    mdm_iws:
+      hosts:
+        mdm-iws-dr-vm-01.company.internal:
+          ansible_host: 10.2.21.21
+          wls_ms_name: MDM-IWS-MS-01
+          wls_ms_port: 7014
+        mdm-iws-dr-vm-02.company.internal:
+          ansible_host: 10.2.21.22
+          wls_ms_name: MDM-IWS-MS-02
+          wls_ms_port: 7014
+      vars:
+        wls_cluster: MDM-IWS
+        wls_domain: mdm_domain
+
+    mdm_batch:
+      hosts:
+        mdm-batch-dr-vm-01.company.internal:
+          ansible_host: 10.2.21.31
+          wls_ms_name: MDM-BATCH-MS-01
+          wls_ms_port: 7016
+        mdm-batch-dr-vm-02.company.internal:
+          ansible_host: 10.2.21.32
+          wls_ms_name: MDM-BATCH-MS-02
+          wls_ms_port: 7016
+      vars:
+        wls_cluster: MDM-BATCH
+        wls_domain: mdm_domain
+
+    soa_int:
+      vars:
+        wls_domain: soa_int
+        wls_admin_port: 8101
+        soainfra_schema_prefix: INT
+      children:
+        soa_int_ms:
+          hosts:
+            soa-int-dr-ms-vm-01.company.internal:
+              ansible_host: 10.2.40.11
+              wls_ms_name: SOA-INT-MS-01
+              wls_ms_port: 8102
+            soa-int-dr-ms-vm-02.company.internal:
+              ansible_host: 10.2.40.12
+              wls_ms_name: SOA-INT-MS-02
+              wls_ms_port: 8102
+        soa_int_wsm:
+          hosts:
+            soa-int-dr-wsm-vm-01.company.internal:
+              ansible_host: 10.2.40.13
+              wls_ms_name: WSM-INT-MS-01
+              wls_ms_port: 8103
+
+    soa_int_admin:
+      hosts:
+        soa-int-dr-ms-vm-01.company.internal:
+
+    soa_if:
+      vars:
+        wls_domain: soa_if
+        wls_admin_port: 8201
+        soainfra_schema_prefix: IF
+      children:
+        soa_if_ms:
+          hosts:
+            soa-if-dr-ms-vm-01.company.internal:
+              ansible_host: 10.2.41.11
+              wls_ms_name: SOA-IF-MS-01
+              wls_ms_port: 8202
+            soa-if-dr-ms-vm-02.company.internal:
+              ansible_host: 10.2.41.12
+              wls_ms_name: SOA-IF-MS-02
+              wls_ms_port: 8202
+        soa_if_wsm:
+          hosts:
+            soa-if-dr-wsm-vm-01.company.internal:
+              ansible_host: 10.2.41.13
+              wls_ms_name: WSM-IF-MS-01
+              wls_ms_port: 8203
+
+    soa_if_admin:
+      hosts:
+        soa-if-dr-ms-vm-01.company.internal:
+
+    soa_web:
+      vars:
+        wls_domain: soa_web
+        wls_admin_port: 8301
+        soainfra_schema_prefix: WEB
+      children:
+        soa_web_ms:
+          hosts:
+            soa-web-dr-ms-vm-01.company.internal:
+              ansible_host: 10.2.42.11
+              wls_ms_name: SOA-WEB-MS-01
+              wls_ms_port: 8302
+            soa-web-dr-ms-vm-02.company.internal:
+              ansible_host: 10.2.42.12
+              wls_ms_name: SOA-WEB-MS-02
+              wls_ms_port: 8302
+        soa_web_wsm:
+          hosts:
+            soa-web-dr-wsm-vm-01.company.internal:
+              ansible_host: 10.2.42.13
+              wls_ms_name: WSM-WEB-MS-01
+              wls_ms_port: 8303
+
+    soa_web_admin:
+      hosts:
+        soa-web-dr-ms-vm-01.company.internal:
+
+    soa_sgg:
+      vars:
+        wls_domain: soa_sgg
+        wls_admin_port: 8401
+        soainfra_schema_prefix: SGG
+      children:
+        soa_sgg_ms:
+          hosts:
+            soa-sgg-dr-ms-vm-01.company.internal:
+              ansible_host: 10.2.43.11
+              wls_ms_name: SOA-SGG-MS-01
+              wls_ms_port: 8402
+            soa-sgg-dr-ms-vm-02.company.internal:
+              ansible_host: 10.2.43.12
+              wls_ms_name: SOA-SGG-MS-02
+              wls_ms_port: 8402
+        soa_sgg_wsm:
+          hosts:
+            soa-sgg-dr-wsm-vm-01.company.internal:
+              ansible_host: 10.2.43.13
+              wls_ms_name: WSM-SGG-MS-01
+              wls_ms_port: 8403
+
+    soa_sgg_admin:
+      hosts:
+        soa-sgg-dr-ms-vm-01.company.internal:
+
+    # DR RAC nodes — these are the standby database hosts.
+    # SCAN listeners (ccb_scan_address / mdm_scan_address / soa_scan_address above)
+    # are the connection endpoints used by application servers.
+    db_nodes:
+      hosts:
+        dr-ccb-rac-01.company.internal:
+          ansible_host: 10.2.50.11
+          db_cluster: ccb_rac
+        dr-ccb-rac-02.company.internal:
+          ansible_host: 10.2.50.12
+          db_cluster: ccb_rac
+        dr-mdm-rac-01.company.internal:
+          ansible_host: 10.2.51.11
+          db_cluster: mdm_rac
+        dr-mdm-rac-02.company.internal:
+          ansible_host: 10.2.51.12
+          db_cluster: mdm_rac
+        dr-soa-rac-01.company.internal:
+          ansible_host: 10.2.52.11
+          db_cluster: soa_rac
+        dr-soa-rac-02.company.internal:
+          ansible_host: 10.2.52.12
+          db_cluster: soa_rac
+
+    kvm_hosts:
+      hosts:
+        dr-kvm-ccb-a.company.internal:
+          ansible_host: 10.2.1.11
+        dr-kvm-ccb-b.company.internal:
+          ansible_host: 10.2.1.12
+        dr-kvm-mdm-a.company.internal:
+          ansible_host: 10.2.1.21
+        dr-kvm-mdm-b.company.internal:
+          ansible_host: 10.2.1.22
+        dr-kvm-soa-a.company.internal:
+          ansible_host: 10.2.1.31
+        dr-kvm-soa-b.company.internal:
+          ansible_host: 10.2.1.32
+        dr-kvm-web.company.internal:
+          ansible_host: 10.2.1.41
+
+    ccb_all:
+      children:
+        ccb_admin:
+        ccb_web:
+        ccb_iws:
+        ccb_batch:
+
+    mdm_all:
+      children:
+        mdm_admin:
+        mdm_web:
+        mdm_iws:
+        mdm_batch:
+
+    soa_all:
+      children:
+        soa_int:
+        soa_if:
+        soa_web:
+        soa_sgg:
+
+    app_servers:
+      children:
+        ohs_servers:
+        ccb_all:
+        mdm_all:
+        soa_all:

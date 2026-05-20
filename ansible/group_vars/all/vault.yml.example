@@ -1,16 +1,25 @@
 ---
-# vault.yml.example — copy to vault.yml and encrypt with: ansible-vault encrypt vault.yml
-# vault.yml is .gitignored — NEVER commit
+# Ansible Vault — bootstrap secrets only.
+# Encrypt this file: ansible-vault encrypt group_vars/all/vault.yml
+# Vault password stored at ~/.vault_pass (never committed).
+#
+# BeyondTrust PasswordSafe API credentials are NOT stored here —
+# they live in ~/.bt_wallet/credentials on the control node.
 
-# BeyondTrust PasswordSafe
-vault_bt_client_id:         "CHANGE_ME"
-vault_bt_client_secret:     "CHANGE_ME"
+# WLS admin password — used for Admin Server startup and WLST connections.
+# Rotated by BeyondTrust PasswordSafe after the first successful site install.
+vault_wls_admin_password: "CHANGEME"
 
-# Entra ID SAML
-vault_entra_tenant_id:      "CHANGE_ME"
+# Oracle DB sys/system password — used by oracle-db-single role (dev environments only).
+# Production Oracle RAC uses BeyondTrust-managed credentials.
+vault_oracle_sys_password: "CHANGEME"
 
-# Ansible bootstrap only — these are rotated by BeyondTrust after first run
-vault_wls_admin_password:   "CHANGE_ME"
-vault_ccb_db_password:      "CHANGE_ME"
-vault_mdm_db_password:      "CHANGE_ME"
-vault_soa_db_password:      "CHANGE_ME"
+# Entra ID tenant ID for SAML 2.0 SP configuration (not a secret, but kept here
+# with other per-environment bootstrap values for consistency).
+vault_entra_tenant_id: "00000000-0000-0000-0000-000000000000"
+
+# Initial database passwords — bootstrap only; rotated by BeyondTrust after first run.
+# Required for JDBC datasource creation during wls-cluster-config role.
+vault_ccb_db_password: "CHANGEME"
+vault_mdm_db_password: "CHANGEME"
+vault_soa_db_password: "CHANGEME"

@@ -83,6 +83,21 @@ jobs:
           cd terraform/environments/primary
           terraform init -backend=false -no-color
           terraform validate -no-color
+      - name: Terraform validate dr
+        run: |
+          cd terraform/environments/dr
+          terraform init -backend=false -no-color
+          terraform validate -no-color
+      - name: Terraform validate azure-dev
+        run: |
+          cd terraform/environments/azure-dev
+          terraform init -backend=false -no-color
+          terraform validate -no-color
+      - name: Terraform validate do-dev
+        run: |
+          cd terraform/environments/do-dev
+          terraform init -backend=false -no-color
+          terraform validate -no-color
 
   secret-scan:
     name: Secret Scan

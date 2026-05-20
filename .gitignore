@@ -23,6 +23,8 @@ secrets/
 .terraform.lock.hcl
 *.tfvars
 !*.tfvars.example
+# Terraform backend config — created locally, never committed
+backend.hcl
 
 # Ansible generated/sensitive
 ansible/inventories/*.retry
