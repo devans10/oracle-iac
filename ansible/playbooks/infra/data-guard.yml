@@ -2,5 +2,6 @@
 - name: Validate Data Guard configuration and configure DR TNS aliases
   hosts: app_servers
   roles:
-    - oracle-data-guard
+    - role: oracle-data-guard
+      when: enable_data_guard | default(false) | bool
   tags: [dg]

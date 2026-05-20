@@ -1,0 +1,30 @@
+---
+# Dev environment sizing — overrides ansible/group_vars/all/sizing.yml for smaller VMs.
+
+# JVM heap sizes (MB) — scaled down from production
+wls_admin_heap_mb: 1024
+wls_ms_heap_mb_web: 2048
+wls_ms_heap_mb_iws: 2048
+wls_ms_heap_mb_batch: 4096
+wls_ms_heap_mb_soa: 2048
+
+# JDBC connection pools — minimal for dev
+jdbc_min_pool: 2
+jdbc_max_pool_web: 10
+jdbc_max_pool_iws: 10
+jdbc_max_pool_batch: 20
+
+# Feature flags — disable HA/integration features not needed in dev
+enable_ohs: false
+enable_saml: false
+enable_nfs: false
+enable_monitoring: false
+enable_data_guard: false
+
+# WLS production mode off in dev — allows faster startup, relaxed security constraints
+wls_production_mode: false
+
+# Single SOA domain in dev to reduce resource footprint
+# Full set is: [soa_int, soa_if, soa_web, soa_sgg]
+enabled_soa_domains:
+  - soa_int

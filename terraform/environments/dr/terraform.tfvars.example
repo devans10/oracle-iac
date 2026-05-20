@@ -1,0 +1,14 @@
+# terraform.tfvars.example — copy to terraform.tfvars and fill in values
+# terraform.tfvars is .gitignored — NEVER commit
+
+libvirt_uri_dr_ccb_a = "qemu+ssh://root@dr-kvm-ccb-a.company.internal/system"
+libvirt_uri_dr_ccb_b = "qemu+ssh://root@dr-kvm-ccb-b.company.internal/system"
+libvirt_uri_dr_mdm_a = "qemu+ssh://root@dr-kvm-mdm-a.company.internal/system"
+libvirt_uri_dr_mdm_b = "qemu+ssh://root@dr-kvm-mdm-b.company.internal/system"
+libvirt_uri_dr_soa_a = "qemu+ssh://root@dr-kvm-soa-a.company.internal/system"
+libvirt_uri_dr_soa_b = "qemu+ssh://root@dr-kvm-soa-b.company.internal/system"
+libvirt_uri_dr_web   = "qemu+ssh://root@dr-kvm-web.company.internal/system"
+
+oracle_linux_image = "/var/lib/libvirt/images/OracleLinux-9-base.qcow2"
+app_network        = "oracle-net"
+ssh_public_key     = "ssh-rsa AAAA... your-key-here"
