@@ -3,50 +3,49 @@
 
 soa_domain_name: soa_sgg
 soa_domain_home: "{{ oracle_config }}/soa_sgg"
-soa_ms_group: soa_sgg_ms
+soa_osb_group: soa_sgg_osb
+soa_ms_group: soa_sgg_soa
 soa_wsm_group: soa_sgg_wsm
 
-# WLS Admin Server — first host in soa_sgg_admin group is the Admin Server VM.
-admin_host: "{{ hostvars[groups['soa_sgg_admin'][0]]['ansible_host'] | default(groups['soa_sgg_admin'][0]) }}"
-admin_port: 8401
+admin_host: "{{ hostvars[groups['soa_sgg_adm'][0]]['ansible_host'] | default(groups['soa_sgg_adm'][0]) }}"
+admin_port: 8061
 admin_user: weblogic
 admin_password: "{{ vault_wls_admin_password }}"
 
-# JDBC datasources for wls-cluster-config
 jdbc_datasources:
   - name: SOADataSource
     jndi_name: jdbc/SOADataSource
     url: "jdbc:oracle:thin:@//{{ soa_db_scan }}:{{ rac_listener_port }}/{{ soa_db_service_sgg }}"
     db_user: SGG_SOAINFRA
-    cluster: SOA-SGG-CLUSTER
+    cluster: SGG-SOA-CLUSTER
     max_capacity: "{{ jdbc_max_capacity_soa }}"
   - name: SOALocalTxDataSource
     jndi_name: jdbc/SOALocalTxDataSource
     url: "jdbc:oracle:thin:@//{{ soa_db_scan }}:{{ rac_listener_port }}/{{ soa_db_service_sgg }}"
     db_user: SGG_SOAINFRA
-    cluster: SOA-SGG-CLUSTER
+    cluster: SGG-SOA-CLUSTER
     max_capacity: "{{ jdbc_max_capacity_soa }}"
   - name: mds-soa
     jndi_name: jdbc/mds/MDS_LocalTxDataSource
     url: "jdbc:oracle:thin:@//{{ soa_db_scan }}:{{ rac_listener_port }}/{{ soa_db_service_sgg }}"
     db_user: SGG_MDS
-    cluster: SOA-SGG-CLUSTER
+    cluster: SGG-SOA-CLUSTER
     max_capacity: "{{ jdbc_max_capacity_soa }}"
   - name: OraSDPMDataSource
     jndi_name: jdbc/OraSDPMDataSource
     url: "jdbc:oracle:thin:@//{{ soa_db_scan }}:{{ rac_listener_port }}/{{ soa_db_service_sgg }}"
     db_user: SGG_ORASDPM
-    cluster: SOA-SGG-CLUSTER
+    cluster: SGG-SOA-CLUSTER
     max_capacity: "{{ jdbc_max_capacity_soa }}"
 
-# WLS cluster JVM heap for wls-cluster-config
 wls_clusters:
-  - name: SOA-SGG-CLUSTER
+  - name: SGG-OSB-CLUSTER
     heap_mb: "{{ wls_ms_heap_mb_soa }}"
-  - name: WSM-SGG-CLUSTER
+  - name: SGG-SOA-CLUSTER
+    heap_mb: "{{ wls_ms_heap_mb_soa }}"
+  - name: SGG-WSM-CLUSTER
     heap_mb: "{{ wls_ms_heap_mb_soa }}"
 
-# BeyondTrust startup credential injection
 bt_wls_domains:
   - domain_home: "{{ soa_domain_home }}"
     admin_url: "t3://{{ admin_host }}:{{ admin_port }}"

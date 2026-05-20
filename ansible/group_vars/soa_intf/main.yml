@@ -1,0 +1,59 @@
+---
+# SOA INTF domain group variables — apply to all soa_intf_* host groups.
+
+soa_domain_name: soa_intf
+soa_domain_home: "{{ oracle_config }}/soa_intf"
+soa_osb_group: soa_intf_osb
+soa_ms_group: soa_intf_soa
+soa_bam_group: soa_intf_bam
+soa_odi_group: soa_intf_odi
+soa_wsm_group: soa_intf_wsm
+
+admin_host: "{{ hostvars[groups['soa_intf_adm'][0]]['ansible_host'] | default(groups['soa_intf_adm'][0]) }}"
+admin_port: 8021
+admin_user: weblogic
+admin_password: "{{ vault_wls_admin_password }}"
+
+jdbc_datasources:
+  - name: SOADataSource
+    jndi_name: jdbc/SOADataSource
+    url: "jdbc:oracle:thin:@//{{ soa_db_scan }}:{{ rac_listener_port }}/{{ soa_db_service_intf }}"
+    db_user: INTF_SOAINFRA
+    cluster: INTF-SOA-CLUSTER
+    max_capacity: "{{ jdbc_max_capacity_soa }}"
+  - name: SOALocalTxDataSource
+    jndi_name: jdbc/SOALocalTxDataSource
+    url: "jdbc:oracle:thin:@//{{ soa_db_scan }}:{{ rac_listener_port }}/{{ soa_db_service_intf }}"
+    db_user: INTF_SOAINFRA
+    cluster: INTF-SOA-CLUSTER
+    max_capacity: "{{ jdbc_max_capacity_soa }}"
+  - name: mds-soa
+    jndi_name: jdbc/mds/MDS_LocalTxDataSource
+    url: "jdbc:oracle:thin:@//{{ soa_db_scan }}:{{ rac_listener_port }}/{{ soa_db_service_intf }}"
+    db_user: INTF_MDS
+    cluster: INTF-SOA-CLUSTER
+    max_capacity: "{{ jdbc_max_capacity_soa }}"
+  - name: OraSDPMDataSource
+    jndi_name: jdbc/OraSDPMDataSource
+    url: "jdbc:oracle:thin:@//{{ soa_db_scan }}:{{ rac_listener_port }}/{{ soa_db_service_intf }}"
+    db_user: INTF_ORASDPM
+    cluster: INTF-SOA-CLUSTER
+    max_capacity: "{{ jdbc_max_capacity_soa }}"
+
+wls_clusters:
+  - name: INTF-OSB-CLUSTER
+    heap_mb: "{{ wls_ms_heap_mb_soa }}"
+  - name: INTF-SOA-CLUSTER
+    heap_mb: "{{ wls_ms_heap_mb_soa }}"
+  - name: INTF-BAM-CLUSTER
+    heap_mb: "{{ wls_ms_heap_mb_soa }}"
+  - name: INTF-ODI-CLUSTER
+    heap_mb: "{{ wls_ms_heap_mb_soa }}"
+  - name: INTF-WSM-CLUSTER
+    heap_mb: "{{ wls_ms_heap_mb_soa }}"
+
+bt_wls_domains:
+  - domain_home: "{{ soa_domain_home }}"
+    admin_url: "t3://{{ admin_host }}:{{ admin_port }}"
+    admin_user: "{{ admin_user }}"
+    system_name: "{{ inventory_hostname }}"

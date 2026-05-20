@@ -1,10 +1,14 @@
 ---
 soa_domain_name: soa_web
 soa_domain_home: "{{ oracle_config }}/soa_web"
-soa_admin_port: 8301
-soa_ms_port: 8302
-soa_wsm_port: 8303
-soa_ms_group: soa_web_ms
+soa_admin_port: 8041
+soa_osb_port: 8043
+soa_ms_port: 8045
+soa_bam_port: 8047
+soa_wsm_port: 8049
+soa_osb_group: soa_web_osb
+soa_ms_group: soa_web_soa
+soa_bam_group: soa_web_bam
 soa_wsm_group: soa_web_wsm
 soa_db_user: WEB_SOAINFRA
 soa_db_service: "{{ soa_db_service_web }}"

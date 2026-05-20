@@ -23,13 +23,25 @@ variable "libvirt_uri_mdm_b" {
 }
 
 variable "libvirt_uri_soa_a" {
-  description = "libvirt connection URI for KVM host SOA-A (hosts all SOA -01/-admin VMs)"
+  description = "libvirt connection URI for KVM host SOA-A (hosts INTEG domain VMs)"
   type        = string
   sensitive   = true
 }
 
 variable "libvirt_uri_soa_b" {
-  description = "libvirt connection URI for KVM host SOA-B (hosts all SOA -02 VMs)"
+  description = "libvirt connection URI for KVM host SOA-B (hosts INTF domain VMs)"
+  type        = string
+  sensitive   = true
+}
+
+variable "libvirt_uri_soa_c" {
+  description = "libvirt connection URI for KVM host SOA-C (hosts WEB domain VMs)"
+  type        = string
+  sensitive   = true
+}
+
+variable "libvirt_uri_soa_d" {
+  description = "libvirt connection URI for KVM host SOA-D (hosts SGG domain VMs)"
   type        = string
   sensitive   = true
 }

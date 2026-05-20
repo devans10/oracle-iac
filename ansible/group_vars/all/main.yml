@@ -17,7 +17,7 @@ cissys_user: cissys
 cissys_group: cisusr
 
 # --- Java ---
-jdk_version: "21"
+jdk_version: "17"
 jdk_home: "{{ oracle_products }}/jdk{{ jdk_version }}"
 java_home: "{{ jdk_home }}"
 
@@ -63,19 +63,19 @@ bt_credential_script: "{{ playbook_dir }}/../../scripts/beyondtrust/get-credenti
 # --- Entra ID SAML ---
 entra_tenant_id: "{{ vault_entra_tenant_id }}"       # from vault.yml
 entra_idp_metadata: "/u01/oracle/config/saml/entra-idp-metadata.xml"
-saml_sp_base_url_ccb: "https://ccb.company.com"
-saml_sp_base_url_mdm: "https://mdm.company.com"
+saml_sp_base_url_ccb: "https://ccb.duqlight.com"
+saml_sp_base_url_mdm: "https://mdm.duqlight.com"
 
 # --- Oracle RAC / JDBC ---
-ccb_db_scan: "ccb-scan.company.internal"
+ccb_db_scan: "ccb-scan.duqlight.com"
 ccb_db_service: "CCB_OLTP"
 ccb_db_service_batch: "CCB_BATCH"
-mdm_db_scan: "mdm-scan.company.internal"
+mdm_db_scan: "mdm-scan.duqlight.com"
 mdm_db_service: "MDM_ONLINE"
 mdm_db_service_batch: "MDM_IMD"
-soa_db_scan: "soa-scan.company.internal"
-soa_db_service_int: SOA_INT
-soa_db_service_if: SOA_IF
+soa_db_scan: "soa-scan.duqlight.com"
+soa_db_service_integ: SOA_INTEG
+soa_db_service_intf: SOA_INTF
 soa_db_service_web: SOA_WEB
 soa_db_service_sgg: SOA_SGG
 rac_listener_port: 1521

@@ -5,35 +5,66 @@ LoadModule weblogic_module ${ORACLE_HOME}/ohs/modules/mod_wl_ohs.so
 
 <IfModule mod_weblogic.c>
   WebLogicHost {{ groups['ccb_web'][0] }}
-  WebLogicPort {{ ccb_web_port | default(7010) }}
+  WebLogicPort {{ ccb_web_port | default(7002) }}
   ConnectTimeoutSecs 10
   ConnectRetrySecs 2
   Idempotent OFF
 </IfModule>
 
 # CC&B web cluster
-<Location /ouaf>
+<Location /ccb>
   SetHandler weblogic-handler
-  WebLogicCluster {% for host in groups['ccb_web'] %}{{ hostvars[host]['ansible_host'] | default(host) }}:{{ ccb_web_port | default(7010) }}{% if not loop.last %},{% endif %}{% endfor %}
+  WebLogicCluster {% for host in groups['ccb_web'] %}{{ hostvars[host]['ansible_host'] | default(host) }}:{{ hostvars[host]['wls_ms_port'] | default(7002) }}{% if not loop.last %},{% endif %}{% endfor %}
 
   WLCookieName OUAF_JSESSIONID
-  PathTrim /ouaf
-  PathPrepend /ouaf
+</Location>
+
+# CC&B IWS cluster
+<Location /ccb-iws>
+  SetHandler weblogic-handler
+  WebLogicCluster {% for host in groups['ccb_iws'] %}{{ hostvars[host]['ansible_host'] | default(host) }}:{{ hostvars[host]['wls_ms_port'] | default(7004) }}{% if not loop.last %},{% endif %}{% endfor %}
+
 </Location>
 
 # MDM web cluster
 <Location /mdm>
   SetHandler weblogic-handler
-  WebLogicCluster {% for host in groups['mdm_web'] %}{{ hostvars[host]['ansible_host'] | default(host) }}:{{ mdm_web_port | default(8010) }}{% if not loop.last %},{% endif %}{% endfor %}
+  WebLogicCluster {% for host in groups['mdm_web'] %}{{ hostvars[host]['ansible_host'] | default(host) }}:{{ hostvars[host]['wls_ms_port'] | default(7012) }}{% if not loop.last %},{% endif %}{% endfor %}
 
   WLCookieName MDM_JSESSIONID
-  PathTrim /mdm
-  PathPrepend /mdm
 </Location>
 
-# SOA soa_web domain composite HTTP bindings
-<Location /soa-infra>
+# MDM IWS cluster
+<Location /mdm-iws>
   SetHandler weblogic-handler
-  WebLogicCluster {% for host in groups['soa_web_ms'] %}{{ hostvars[host]['ansible_host'] | default(host) }}:{{ soa_web_ms_port | default(8302) }}{% if not loop.last %},{% endif %}{% endfor %}
+  WebLogicCluster {% for host in groups['mdm_iws'] %}{{ hostvars[host]['ansible_host'] | default(host) }}:{{ hostvars[host]['wls_ms_port'] | default(7014) }}{% if not loop.last %},{% endif %}{% endfor %}
+
+</Location>
+
+# SOA INTEG_Domain OSB cluster — CC&B <-> MDM integration
+<Location /soa/integration>
+  SetHandler weblogic-handler
+  WebLogicCluster {% for host in groups['soa_integ_osb'] %}{{ hostvars[host]['ansible_host'] | default(host) }}:{{ hostvars[host]['wls_ms_port'] | default(8003) }}{% if not loop.last %},{% endif %}{% endfor %}
+
+</Location>
+
+# SOA INTF_Domain OSB cluster — External interfaces
+<Location /soa/interfaces>
+  SetHandler weblogic-handler
+  WebLogicCluster {% for host in groups['soa_intf_osb'] %}{{ hostvars[host]['ansible_host'] | default(host) }}:{{ hostvars[host]['wls_ms_port'] | default(8023) }}{% if not loop.last %},{% endif %}{% endfor %}
+
+</Location>
+
+# SOA WEB_Domain OSB cluster — Web Portal integration
+<Location /portal-ws>
+  SetHandler weblogic-handler
+  WebLogicCluster {% for host in groups['soa_web_osb'] %}{{ hostvars[host]['ansible_host'] | default(host) }}:{{ hostvars[host]['wls_ms_port'] | default(8043) }}{% if not loop.last %},{% endif %}{% endfor %}
+
+</Location>
+
+# SOA SGG_Domain OSB cluster — Itron AMI
+<Location /sgg>
+  SetHandler weblogic-handler
+  WebLogicCluster {% for host in groups['soa_sgg_osb'] %}{{ hostvars[host]['ansible_host'] | default(host) }}:{{ hostvars[host]['wls_ms_port'] | default(8063) }}{% if not loop.last %},{% endif %}{% endfor %}
 
 </Location>
