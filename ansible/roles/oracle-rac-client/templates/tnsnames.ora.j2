@@ -36,21 +36,21 @@ MDM_IMD =
     )
   )
 
-SOA_INT =
+SOA_INTEG =
   (DESCRIPTION =
     (ADDRESS = (PROTOCOL = TCP)(HOST = {{ soa_db_scan }})(PORT = {{ rac_listener_port }}))
     (CONNECT_DATA =
       (SERVER = DEDICATED)
-      (SERVICE_NAME = {{ soa_db_service_int }})
+      (SERVICE_NAME = {{ soa_db_service_integ }})
     )
   )
 
-SOA_IF =
+SOA_INTF =
   (DESCRIPTION =
     (ADDRESS = (PROTOCOL = TCP)(HOST = {{ soa_db_scan }})(PORT = {{ rac_listener_port }}))
     (CONNECT_DATA =
       (SERVER = DEDICATED)
-      (SERVICE_NAME = {{ soa_db_service_if }})
+      (SERVICE_NAME = {{ soa_db_service_intf }})
     )
   )
 

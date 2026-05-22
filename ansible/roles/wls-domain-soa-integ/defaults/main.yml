@@ -1,0 +1,14 @@
+---
+soa_domain_name: soa_integ
+soa_domain_home: "{{ oracle_config }}/soa_integ"
+soa_admin_port: 8001
+soa_osb_port: 8003
+soa_ms_port: 8005
+soa_wsm_port: 8007
+soa_osb_group: soa_integ_osb
+soa_ms_group: soa_integ_soa
+soa_wsm_group: soa_integ_wsm
+soa_db_user: INTEG_SOAINFRA
+soa_db_service: "{{ soa_db_service_integ }}"
+wlst_script_dir: "{{ oracle_stage }}/wlst"
+soa_domain_script: "{{ wlst_script_dir }}/create-soa-integ-domain.py"

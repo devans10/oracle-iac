@@ -4,7 +4,7 @@
 Infrastructure-as-Code and automated installation for an Oracle utility enterprise platform upgrade:
 - **Oracle CC&B 25.10** — Customer Care & Billing (OUAF; 3 WLS clusters: Web, IWS, Batch)
 - **Oracle MDM 25.10** — Meter Data Management (OUAF; 3 WLS clusters: Web, IWS, Batch)
-- **Oracle SOA Suite 12.2.1.4+** — 4 independent WLS domains: soa_int, soa_if, soa_web, soa_sgg
+- **Oracle SOA Suite 12.2.1.4+** — 4 independent WLS domains: soa_integ, soa_intf, soa_web, soa_sgg
 - **Oracle HTTP Server** — 3-node OHS cluster (mod_wl_ohs proxy)
 - **Oracle RAC 19c+** — 3 independent clusters (CCB, MDM, SOA) + Data Guard → DR site
 - **Oracle KVM** — Hypervisor platform; one WLS Managed Server per Oracle Linux VM
@@ -58,13 +58,13 @@ docs/
 | Role | Purpose |
 |------|---------|
 | `oracle-linux-base` | OS hardening, kernel params, Oracle prereqs |
-| `oracle-jdk` | JDK 21 install |
+| `oracle-jdk` | JDK 17 install |
 | `oracle-weblogic` | WLS 14.1.1.0 silent install |
 | `oracle-node-manager` | Node Manager config and systemd service |
 | `wls-domain-ccb` | CC&B WLS domain creation (WLST offline) |
 | `wls-domain-mdm` | MDM WLS domain creation (WLST offline) |
-| `wls-domain-soa-int` | SOA INT WLS domain creation (WLST offline) |
-| `wls-domain-soa-if` | SOA IF WLS domain creation (WLST offline) |
+| `wls-domain-soa-integ` | SOA INTEG WLS domain creation (WLST offline) |
+| `wls-domain-soa-intf` | SOA INTF WLS domain creation (WLST offline) |
 | `wls-domain-soa-web` | SOA WEB WLS domain creation (WLST offline) |
 | `wls-domain-soa-sgg` | SOA SGG WLS domain creation (WLST offline) |
 | `wls-cluster-config` | WLS cluster, server, JDBC, JMS config (WLST online) |

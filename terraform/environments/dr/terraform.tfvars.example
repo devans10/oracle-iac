@@ -7,6 +7,8 @@ libvirt_uri_dr_mdm_a = "qemu+ssh://root@dr-kvm-mdm-a.company.internal/system"
 libvirt_uri_dr_mdm_b = "qemu+ssh://root@dr-kvm-mdm-b.company.internal/system"
 libvirt_uri_dr_soa_a = "qemu+ssh://root@dr-kvm-soa-a.company.internal/system"
 libvirt_uri_dr_soa_b = "qemu+ssh://root@dr-kvm-soa-b.company.internal/system"
+libvirt_uri_dr_soa_c = "qemu+ssh://root@dr-kvm-soa-c.company.internal/system"
+libvirt_uri_dr_soa_d = "qemu+ssh://root@dr-kvm-soa-d.company.internal/system"
 libvirt_uri_dr_web   = "qemu+ssh://root@dr-kvm-web.company.internal/system"
 
 oracle_linux_image = "/var/lib/libvirt/images/OracleLinux-9-base.qcow2"

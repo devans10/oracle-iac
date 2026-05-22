@@ -1,6 +1,6 @@
 ---
 # SOA Suite 4-domain installation playbook
-# Each domain (soa_int, soa_if, soa_web, soa_sgg) is fully independent
+# Each domain (soa_integ, soa_intf, soa_web, soa_sgg) is fully independent
 
 - name: Install Java on SOA nodes
   hosts: soa_all
@@ -20,17 +20,17 @@
   roles:
     - oracle-soa-suite
 
-- name: Configure soa_int domain
-  hosts: soa_int
-  tags: [configure, domain, soa_int]
+- name: Configure soa_integ domain
+  hosts: soa_integ
+  tags: [configure, domain, soa_integ]
   roles:
-    - wls-domain-soa-int
+    - wls-domain-soa-integ
 
-- name: Configure soa_if domain
-  hosts: soa_if
-  tags: [configure, domain, soa_if]
+- name: Configure soa_intf domain
+  hosts: soa_intf
+  tags: [configure, domain, soa_intf]
   roles:
-    - wls-domain-soa-if
+    - wls-domain-soa-intf
 
 - name: Configure soa_web domain
   hosts: soa_web

@@ -3,50 +3,52 @@
 
 soa_domain_name: soa_web
 soa_domain_home: "{{ oracle_config }}/soa_web"
-soa_ms_group: soa_web_ms
+soa_osb_group: soa_web_osb
+soa_ms_group: soa_web_soa
+soa_bam_group: soa_web_bam
 soa_wsm_group: soa_web_wsm
 
-# WLS Admin Server — first host in soa_web_admin group is the Admin Server VM.
-admin_host: "{{ hostvars[groups['soa_web_admin'][0]]['ansible_host'] | default(groups['soa_web_admin'][0]) }}"
-admin_port: 8301
+admin_host: "{{ hostvars[groups['soa_web_adm'][0]]['ansible_host'] | default(groups['soa_web_adm'][0]) }}"
+admin_port: 8041
 admin_user: weblogic
 admin_password: "{{ vault_wls_admin_password }}"
 
-# JDBC datasources for wls-cluster-config
 jdbc_datasources:
   - name: SOADataSource
     jndi_name: jdbc/SOADataSource
     url: "jdbc:oracle:thin:@//{{ soa_db_scan }}:{{ rac_listener_port }}/{{ soa_db_service_web }}"
     db_user: WEB_SOAINFRA
-    cluster: SOA-WEB-CLUSTER
+    cluster: WEB-SOA-CLUSTER
     max_capacity: "{{ jdbc_max_capacity_soa }}"
   - name: SOALocalTxDataSource
     jndi_name: jdbc/SOALocalTxDataSource
     url: "jdbc:oracle:thin:@//{{ soa_db_scan }}:{{ rac_listener_port }}/{{ soa_db_service_web }}"
     db_user: WEB_SOAINFRA
-    cluster: SOA-WEB-CLUSTER
+    cluster: WEB-SOA-CLUSTER
     max_capacity: "{{ jdbc_max_capacity_soa }}"
   - name: mds-soa
     jndi_name: jdbc/mds/MDS_LocalTxDataSource
     url: "jdbc:oracle:thin:@//{{ soa_db_scan }}:{{ rac_listener_port }}/{{ soa_db_service_web }}"
     db_user: WEB_MDS
-    cluster: SOA-WEB-CLUSTER
+    cluster: WEB-SOA-CLUSTER
     max_capacity: "{{ jdbc_max_capacity_soa }}"
   - name: OraSDPMDataSource
     jndi_name: jdbc/OraSDPMDataSource
     url: "jdbc:oracle:thin:@//{{ soa_db_scan }}:{{ rac_listener_port }}/{{ soa_db_service_web }}"
     db_user: WEB_ORASDPM
-    cluster: SOA-WEB-CLUSTER
+    cluster: WEB-SOA-CLUSTER
     max_capacity: "{{ jdbc_max_capacity_soa }}"
 
-# WLS cluster JVM heap for wls-cluster-config
 wls_clusters:
-  - name: SOA-WEB-CLUSTER
+  - name: WEB-OSB-CLUSTER
     heap_mb: "{{ wls_ms_heap_mb_soa }}"
-  - name: WSM-WEB-CLUSTER
+  - name: WEB-SOA-CLUSTER
+    heap_mb: "{{ wls_ms_heap_mb_soa }}"
+  - name: WEB-BAM-CLUSTER
+    heap_mb: "{{ wls_ms_heap_mb_soa }}"
+  - name: WEB-WSM-CLUSTER
     heap_mb: "{{ wls_ms_heap_mb_soa }}"
 
-# BeyondTrust startup credential injection
 bt_wls_domains:
   - domain_home: "{{ soa_domain_home }}"
     admin_url: "t3://{{ admin_host }}:{{ admin_port }}"

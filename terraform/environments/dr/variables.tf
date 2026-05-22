@@ -40,6 +40,18 @@ variable "libvirt_uri_dr_web" {
   sensitive   = true
 }
 
+variable "libvirt_uri_dr_soa_c" {
+  description = "libvirt connection URI for DR KVM host SOA-C (hosts WEB domain VMs at DR site)"
+  type        = string
+  sensitive   = true
+}
+
+variable "libvirt_uri_dr_soa_d" {
+  description = "libvirt connection URI for DR KVM host SOA-D (hosts SGG domain VMs at DR site)"
+  type        = string
+  sensitive   = true
+}
+
 variable "oracle_linux_image" {
   description = "Path or URL to Oracle Linux base image (qcow2)"
   type        = string

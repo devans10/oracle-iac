@@ -44,6 +44,16 @@ provider "libvirt" {
 }
 
 provider "libvirt" {
+  alias = "dr_soa_c"
+  uri   = var.libvirt_uri_dr_soa_c
+}
+
+provider "libvirt" {
+  alias = "dr_soa_d"
+  uri   = var.libvirt_uri_dr_soa_d
+}
+
+provider "libvirt" {
   alias = "dr_web"
   uri   = var.libvirt_uri_dr_web
 }

@@ -1,6 +1,6 @@
 ---
 galaxy_info:
-  role_name: wls_domain_soa_if
+  role_name: wls_domain_soa_intf
   author: oracle-iac
   license: Apache-2.0
   description: ''
