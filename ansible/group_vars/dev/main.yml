@@ -25,6 +25,6 @@ enable_data_guard: false
 wls_production_mode: false
 
 # Single SOA domain in dev to reduce resource footprint
-# Full set is: [soa_int, soa_if, soa_web, soa_sgg]
+# Full set is: [soa_integ, soa_intf, soa_web, soa_sgg]
 enabled_soa_domains:
-  - soa_int
+  - soa_integ

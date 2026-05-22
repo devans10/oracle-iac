@@ -4,6 +4,7 @@
 - name: Configure Entra ID SAML on CC&B Web cluster
   hosts: ccb_admin
   tags: [configure, saml, entra]
+  when: enable_saml | default(false)
   roles:
     - entra-id-saml
   vars:
@@ -13,6 +14,7 @@
 - name: Configure Entra ID SAML on MDM Web cluster
   hosts: mdm_admin
   tags: [configure, saml, entra]
+  when: enable_saml | default(false)
   roles:
     - entra-id-saml
   vars:
@@ -22,5 +24,6 @@
 - name: Configure BeyondTrust credential retrieval on all app servers
   hosts: app_servers
   tags: [configure, beyondtrust, pam]
+  when: beyondtrust_enabled | default(true)
   roles:
     - beyondtrust-integration

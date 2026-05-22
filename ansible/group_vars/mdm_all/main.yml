@@ -16,18 +16,21 @@ jdbc_datasources:
     jndi_name: jdbc/MDM_ONLINE
     url: "jdbc:oracle:thin:@//{{ mdm_db_scan }}:1521/{{ mdm_db_service }}"
     db_user: MDMADM
+    db_password: "{{ vault_mdm_db_password }}"
     cluster: MDM-WEB
     max_capacity: "{{ jdbc_max_capacity_web }}"
   - name: MDM-IWS-DS
     jndi_name: jdbc/MDM_IWS
     url: "jdbc:oracle:thin:@//{{ mdm_db_scan }}:1521/{{ mdm_db_service }}"
     db_user: MDMADM
+    db_password: "{{ vault_mdm_db_password }}"
     cluster: MDM-IWS
     max_capacity: "{{ jdbc_max_capacity_iws }}"
   - name: MDM-IMD-DS
     jndi_name: jdbc/MDM_IMD
     url: "jdbc:oracle:thin:@//{{ mdm_db_scan }}:1521/{{ mdm_db_service_batch }}"
     db_user: MDMADM
+    db_password: "{{ vault_mdm_db_password }}"
     cluster: MDM-BATCH
     max_capacity: "{{ jdbc_max_capacity_batch }}"
 

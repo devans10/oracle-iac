@@ -1,0 +1,10 @@
+---
+# DigitalOcean dev environment — overrides for BeyondTrust-free deployment.
+# Passwords come from Ansible Vault (vault.yml) rather than BeyondTrust PasswordSafe.
+
+beyondtrust_enabled: false
+bt_wls_domains: []
+
+# Single SOA domain in do-dev to reduce resource footprint
+enabled_soa_domains:
+  - soa_integ

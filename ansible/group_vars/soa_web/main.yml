@@ -18,24 +18,28 @@ jdbc_datasources:
     jndi_name: jdbc/SOADataSource
     url: "jdbc:oracle:thin:@//{{ soa_db_scan }}:{{ rac_listener_port }}/{{ soa_db_service_web }}"
     db_user: WEB_SOAINFRA
+    db_password: "{{ vault_soa_db_password }}"
     cluster: WEB-SOA-CLUSTER
     max_capacity: "{{ jdbc_max_capacity_soa }}"
   - name: SOALocalTxDataSource
     jndi_name: jdbc/SOALocalTxDataSource
     url: "jdbc:oracle:thin:@//{{ soa_db_scan }}:{{ rac_listener_port }}/{{ soa_db_service_web }}"
     db_user: WEB_SOAINFRA
+    db_password: "{{ vault_soa_db_password }}"
     cluster: WEB-SOA-CLUSTER
     max_capacity: "{{ jdbc_max_capacity_soa }}"
   - name: mds-soa
     jndi_name: jdbc/mds/MDS_LocalTxDataSource
     url: "jdbc:oracle:thin:@//{{ soa_db_scan }}:{{ rac_listener_port }}/{{ soa_db_service_web }}"
     db_user: WEB_MDS
+    db_password: "{{ vault_soa_db_password }}"
     cluster: WEB-SOA-CLUSTER
     max_capacity: "{{ jdbc_max_capacity_soa }}"
   - name: OraSDPMDataSource
     jndi_name: jdbc/OraSDPMDataSource
     url: "jdbc:oracle:thin:@//{{ soa_db_scan }}:{{ rac_listener_port }}/{{ soa_db_service_web }}"
     db_user: WEB_ORASDPM
+    db_password: "{{ vault_soa_db_password }}"
     cluster: WEB-SOA-CLUSTER
     max_capacity: "{{ jdbc_max_capacity_soa }}"
 

@@ -18,18 +18,21 @@ jdbc_datasources:
     jndi_name: jdbc/CCB_OLTP
     url: "jdbc:oracle:thin:@//{{ ccb_db_scan }}:1521/{{ ccb_db_service }}"
     db_user: CISADM
+    db_password: "{{ vault_ccb_db_password }}"
     cluster: CCB-WEB
     max_capacity: "{{ jdbc_max_capacity_web }}"
   - name: CCB-IWS-DS
     jndi_name: jdbc/CCB_IWS
     url: "jdbc:oracle:thin:@//{{ ccb_db_scan }}:1521/{{ ccb_db_service }}"
     db_user: CISADM
+    db_password: "{{ vault_ccb_db_password }}"
     cluster: CCB-IWS
     max_capacity: "{{ jdbc_max_capacity_iws }}"
   - name: CCB-BATCH-DS
     jndi_name: jdbc/CCB_BATCH
     url: "jdbc:oracle:thin:@//{{ ccb_db_scan }}:1521/{{ ccb_db_service_batch }}"
     db_user: CISADM
+    db_password: "{{ vault_ccb_db_password }}"
     cluster: CCB-BATCH
     max_capacity: "{{ jdbc_max_capacity_batch }}"
 

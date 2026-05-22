@@ -40,6 +40,12 @@ if not getMBean('/JDBCSystemResources/' + ds_name):
     cmo.createProperty('user')
     cd('Properties/' + ds_name + '/Property/user')
     cmo.setValue('{{ ds.db_user }}')
+{% if not beyondtrust_enabled | default(true) %}
+    cd('/JDBCSystemResources/' + ds_name + '/JDBCResource/' + ds_name + '/JDBCDriverParams/' + ds_name + '/Properties/' + ds_name)
+    cmo.createProperty('password')
+    cd('Properties/' + ds_name + '/Property/password')
+    cmo.setValue('{{ ds.db_password }}')
+{% endif %}
     cd('/JDBCSystemResources/' + ds_name + '/JDBCResource/' + ds_name + '/JDBCConnectionPoolParams/' + ds_name)
     cmo.setInitialCapacity({{ jdbc_min_capacity }})
     cmo.setMaxCapacity({{ ds.max_capacity | default(jdbc_max_capacity_web) }})

@@ -65,10 +65,10 @@ all:
         do-dev-soa-app-vm-01:
           ansible_host: 10.20.0.13   # replace with Terraform output soa_app_private_ip
       children:
-        soa_int:
+        soa_integ:
           hosts:
             do-dev-soa-app-vm-01:
-        soa_if:
+        soa_intf:
           hosts:
             do-dev-soa-app-vm-01:
         soa_web:
